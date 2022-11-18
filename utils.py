@@ -1,17 +1,94 @@
 import warnings
 
+import numpy as np
+
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 import pandas as pd
-import matplotlib.pyplot as plt
 import requests
-from pythermalcomfort.models import phs, set_tmp, utci, solar_gain, pet_steady
-from pvlib import location
 import pytz
 
 headers = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+    )
+}
+
+
+sma_risk_messages = {
+    "low": {
+        "description": (
+            "maintaining hydration through regular fluid consumption and modifying"
+            " clothing is still a simple, yet effective, way of keeping cool and"
+            " preserving health and performance during the summer months."
+        ),
+        "suggestions": """
+        * Ensure pre-exercise hydration by consuming 6 ml of water per kilogram of body weight
+        every 2-3 hours before exercise. For a 70kg individual, this equates to 420ml of fluid
+        every 2-3 hours (a standard sports drink bottle contains 500ml).
+        * Drink regularly throughout exercise. You should aim to drink enough to offset sweat
+        losses, but it is important to avoid over-drinking because this can also have negative
+        health effects. To familiarise yourself with how much you typically sweat, become
+        accustomed to weighing yourself before and after practice or competition.
+        * Where possible, select light-weight and breathable clothing with extra ventilation
+        * Remove unnecessary clothing/equipment and/or excess clothing layers
+        * Reduce the amount of skin that is covered by clothing – this will help increase your
+        sweat evaporation, which will help you dissipate heat.
+            """,
+    },
+    "moderate": {
+        "description": (
+            "increasing the frequency and/or duration of your rest breaks during"
+            " exercise or sporting activities is an effective way of reducing your risk"
+            " for heat illness even if minimal resources are available."
+        ),
+        "suggestions": """
+        * During training sessions, provide a minimum of 15 minutes of rest for every 45 minutes
+        of practice.
+        * Extend scheduled rest breaks that naturally occur during match-play of a particular
+        sport (e.g. half-time) by ~10 minutes. This is effective for sports such as soccer/football and
+        rugby and can be implemented across other sports such as field hockey.
+        * Implement additional rest breaks that are not normally scheduled to occur. For example,
+        3 to 5-min “quarter-time” breaks can be introduced mid-way through each half of a
+        football or rugby match, or an extended 10-min drinks break can be introduced every
+        hour of a cricket match or after the second set of a tennis match.
+        * For sports with continuous play without any scheduled breaks, courses or play duration
+        can be shortened
+        * During all breaks in play or practice, everyone should seek shade – if natural shade is not
+        available, portable sun shelters should be provided, and water freely available
+            """,
+    },
+    "high": {
+        "description": (
+            "active cooling strategies should be applied during scheduled and"
+            " additional rest breaks, or before and during activity if play is"
+            " continuous. Below are strategies that have been shown to effectively"
+            " reduce body temperature. The suitability and feasibility of each strategy"
+            " will depend on the type of sport or exercise you are performing. "
+        ),
+        "suggestions": """
+        * Drinking cold fluids and/or ice slushies before exercise commences. Note that cold water
+        and ice slushy ingestion during exercise is less effective for cooling
+        * Submerging your arms/feet in cold water
+        * Water dousing – wetting your skin with cool water using a sponge or a spray bottle helps
+        increase evaporation, which is the most effective cooling mechanism in the heat
+        * Ice packs/towels – placing an ice pack or damp towel filled with crushed ice around your
+        neck
+        * Electric (misting) fans – outdoor fans can help keep your body cool, especially when
+        combined with a water misting system
+            """,
+    },
+    "extreme": {
+        "description": (
+            "exercise/play should be suspended. If play has commenced, then all"
+            " activities should be stopped as soon as possible."
+        ),
+        "suggestions": """
+        * All players should seek shade or cool refuge in an air-conditioned space if available
+        * Active cooling strategies should be applied
+            """,
+    },
 }
 
 
@@ -37,182 +114,33 @@ def get_yr_weather(lat=-33.8862, lon=151.1791):
     return df_weather
 
 
-# def get_bom_data():
-#
-#     r = requests.get(
-#         "http://www.bom.gov.au/places/nsw/camperdown/forecast/detailed/",
-#         headers=headers,
-#     )
-#
-#     soup = BeautifulSoup(r.content, "html.parser")
-#
-#     date_info = soup.find_all("div", class_="forecast-day collapsible")
-#     dates = []
-#     for date in date_info:
-#         # print(date.attrs['id'].lstrip('d'))
-#         dates.append(date.attrs["id"].lstrip("d"))
-#
-#     # soup.find_all("th", text="From")[0].parent.find_all("th")[1].text
-#     times = pd.date_range(
-#         start=f"{dates[0]} 02:00:00", end=f"{dates[-1]} 23:00:00", freq="3H"
-#     )
-#
-#     values = {
-#         "tdb": "Air temperature (°C)",
-#         "rh": "Relative humidity (%)",
-#         "rain_chance": "Chance of any rain",
-#         "dew": "Dew point temperature (°C)",
-#         "feel": "Feels like (°C)",
-#         "UV": "UV Index",
-#         "wind": "Wind speed",
-#     }
-#     results = {
-#         "tdb": [],
-#         "rh": [],
-#         "rain_chance": [],
-#         "dew": [],
-#         "feel": [],
-#         "UV": [],
-#         "wind": [],
-#         "timestamp": times,
-#     }
-#     for value in values:
-#         tds = soup.find_all("th")
-#         for td in tds:
-#             if values[value] not in td.text:
-#                 continue
-#             numbers = td.parent.find_all("td")
-#             for el in numbers:
-#                 if value == "wind":
-#                     try:
-#                         results[value].append(
-#                             int(str(el).split('data-kmh="')[1].split('"')[0]) / 3.6
-#                         )
-#                     except IndexError:
-#                         results[value].append(float("nan"))
-#
-#                 else:
-#                     try:
-#                         results[value].append(int(str(el.text).replace("%", "")))
-#                     except ValueError:
-#                         results[value].append(float("nan"))
-#
-#     return (
-#         pd.DataFrame.from_records(results).dropna(subset=["tdb"]).set_index("timestamp")
-#     )
+def calculate_comfort_indices(data):
 
+    print(data.tdb)
 
-def calculate_comfort_indices(location_user=[-33.889, 151.184]):
+    data["moderate"] = 0.1589 * data["tdb"] ** 2 - 15.494 * data["tdb"] + 362.71
+    data["high"] = 0.1353 * data["tdb"] ** 2 - 14.312 * data["tdb"] + 363.2
+    data["extreme"] = 360.36 - 13.016 * data["tdb"] + 0.1116 * data["tdb"] ** 2
 
-    wind_coefficient = 0.3
-    lat, lon = location_user
+    data["risk"] = "low"
+    for risk in ["moderate", "high", "extreme"]:
+        data.loc[(data["tdb"] > 26) & (data["rh"] > data[risk]), "risk"] = risk
 
-    df_for = get_yr_weather(lat, lon)
+    risk_value = {"low": 0, "moderate": 1, "high": 2, "extreme": 3}
+    data["risk_value"] = data["risk"].map(risk_value)
 
-    tz = pytz.timezone("Australia/Sydney")
-    site_location = location.Location(lat, lon, tz=tz, name="Sydney, AU")
-    solar_position = site_location.get_solarposition(df_for.index)
-    cs = site_location.get_clearsky(df_for.index)
-
-    # correct solar radiation by cloud cover
-    solar_position.loc[solar_position["elevation"] < 0, "elevation"] = 0
-    sharp = 0
-    sol_transmittance = 1
-    f_svv = 1
-    f_bes = 1
-    asw = 0.7
-    posture = "standing"
-    floor_reflectance = 0.1
-
-    df_for = pd.concat([df_for, solar_position], axis=1)
-    df_for = pd.concat([df_for, cs], axis=1)
-
-    df_for["cloud"] /= 10
-    df_for["dni"] *= (
-        -0.00375838 * df_for["cloud"] ** 2 + -0.06230424 * df_for["cloud"] + 1.02290071
-    )
-
-    results = []
-    for ix, row in df_for.iterrows():
-        erf_mrt = solar_gain(
-            row["elevation"],
-            sharp,
-            row["dni"],
-            sol_transmittance,
-            f_svv,
-            f_bes,
-            asw,
-            posture,
-            floor_reflectance,
-        )
-        if erf_mrt["delta_mrt"] < 0:
-            print(row)
-        results.append(erf_mrt)
-    df_mrt = pd.DataFrame.from_dict(results)
-    df_mrt.set_index(df_for.index, inplace=True)
-    df_for = pd.concat([df_for, df_mrt], axis=1)
-
-    df_for["wind"] *= wind_coefficient
-    df_for["tr"] = df_for["tdb"] + df_for["delta_mrt"]
-    df_for["clo"] = (
-        1.372
-        - 0.01866 * df_for["tdb"]
-        - 0.0004849 * df_for["tdb"] ** 2
-        - 0.000009333 * df_for["tdb"] ** 3
-    )
-    df_for["clo"] = 0.3
-
-    df_for["utci"] = utci(
-        tdb=df_for["tdb"], tr=df_for["tr"], v=df_for["wind"], rh=df_for["rh"]
-    )
-    df_for["set"] = set_tmp(
-        tdb=df_for["tdb"],
-        tr=df_for["tr"],
-        v=df_for["wind"],
-        rh=df_for["rh"],
-        met=1.1,
-        clo=df_for["clo"],
-        limit_inputs=False,
-    )
-
-    df_for = df_for.resample("1H").interpolate("linear")
-
-    map_index = {
-        "set": {
-            "cool": 17,
-            "comfortable": 30,
-            "warm": 34,
-            "hot": 37,
-            "very hot": 999,
-        },
-    }
-
-    for index in map_index:
-        scale = map_index[index]
-        df_for[f"hss_{index}"] = pd.cut(
-            df_for[index],
-            bins=[-99] + list(scale.values()),
-            labels=list(scale.keys()),
-        )
-
-    map_hss = {
-        "very cold": 1,
-        "cold": 1,
-        "cool": 1,
-        "comfortable": 2,
-        "warm": 3,
-        "hot": 4,
-        "very hot": 5,
-    }
-
-    df_for["hss"] = df_for["hss_set"].map(map_hss)
-
-    return df_for
+    return data
 
 
 if __name__ == "__main__":
-    df = calculate_comfort_indices()
-    df.loc[df["hss"] > 2, ["tdb", "tr", "rh", "clo", "wind", "set"]].round(1)
-    df.loc[df["tr"] > 60, ["tdb", "tr", "rh", "clo", "wind", "set"]].round(1)
-    df[["set", "tdb", "tr"]].plot()
-    plt.show()
+    df = get_yr_weather(lat=-33.889, lon=151.184)
+    df_results = calculate_comfort_indices(df)
+
+    # test
+    values = []
+    for t in np.arange(10, 50):
+        for rh in np.arange(0, 100, 1):
+            values.append([t, rh])
+    df = pd.DataFrame(values, columns=["tdb", "rh"])
+    df_results = calculate_comfort_indices(data=df)
+    df_plot = df_results.pivot("rh", "tdb", "risk").sort_index(ascending=False)
