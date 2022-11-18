@@ -1,5 +1,9 @@
 import plotly.express as px
+import numpy as np
+import pandas as pd
+from utils import calculate_comfort_indices
 import plotly.graph_objects as go
+
 
 # from the AU museum https://australian.museum/about/organisation/media-centre/brand/colour/#Download
 hss_palette = {
@@ -118,5 +122,58 @@ def hss_gauge(df):
     return standard_layout(fig)
 
 
-if __name__ == "__main__":
-    pass
+def risk_map(df_for):
+
+    values = []
+    for t in np.arange(10, 45):
+        for rh in np.arange(0, 100):
+            values.append([t, rh])
+    df = pd.DataFrame(values, columns=["tdb", "rh"])
+    df = calculate_comfort_indices(data=df)
+    df["top"] = 100
+
+    df_for = df_for.head(10)
+
+    print(df_for)
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=df["tdb"],
+            y=df["moderate"],
+            fill="tozeroy",
+            fillcolor=hss_palette[0],
+            mode="none",
+        )
+    )
+    for ix, risk in enumerate(["high", "extreme", "top"]):
+        fig.add_trace(
+            go.Scatter(
+                x=df["tdb"],
+                y=df[risk],
+                fill="tonexty",
+                fillcolor=hss_palette[ix + 1],
+                mode="none",
+            )
+        )
+    fig.add_trace(
+        go.Scatter(
+            x=df_for["tdb"],
+            y=df_for["rh"],
+            mode="lines+markers+text",
+            line_color="black",
+            text=df_for.index.hour,
+            textposition="top center",
+        )
+    )
+
+    fig = standard_layout(fig)
+    fig.update_layout(
+        xaxis=dict(
+            title_text="Temperature [°C]",
+        ),
+        yaxis=dict(
+            title_text="Relative Humidity [%]",
+        ),
+    )
+    return fig

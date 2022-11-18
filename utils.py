@@ -110,13 +110,12 @@ def get_yr_weather(lat=-33.8862, lon=151.1791):
     df_weather.set_index(pd.to_datetime(df_weather["time"]), inplace=True)
     df_weather.drop(columns=["time"], inplace=True)
     df_weather.index = df_weather.index.tz_convert(pytz.timezone("Australia/Sydney"))
+    df_weather = df_weather.resample("2H").max()
 
     return df_weather
 
 
 def calculate_comfort_indices(data):
-
-    print(data.tdb)
 
     data["moderate"] = 0.1589 * data["tdb"] ** 2 - 15.494 * data["tdb"] + 362.71
     data["high"] = 0.1353 * data["tdb"] ** 2 - 14.312 * data["tdb"] + 363.2
@@ -124,6 +123,8 @@ def calculate_comfort_indices(data):
 
     data["risk"] = "low"
     for risk in ["moderate", "high", "extreme"]:
+        data.loc[data[risk] < 0, risk] = 0
+        data.loc[data[risk] > 100, risk] = 100
         data.loc[(data["tdb"] > 26) & (data["rh"] > data[risk]), "risk"] = risk
 
     risk_value = {"low": 0, "moderate": 1, "high": 2, "extreme": 3}

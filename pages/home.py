@@ -2,7 +2,7 @@ from dash import html, dcc, Output, Input, State, callback
 import dash_bootstrap_components as dbc
 import dash_leaflet as dl
 from dash.exceptions import PreventUpdate
-from my_app.charts import heatmap_chart_tmp, hss_trend, hss_palette, hss_gauge
+from my_app.charts import hss_palette, risk_map
 import dash
 import pandas as pd
 
@@ -38,10 +38,8 @@ layout = dbc.Container(
             className="mt-1",
             id="alert-hss-current",
         ),
-        # html.H2("HSS forecast"),
-        # html.Div(id="fig-hss-trend"),
-        # html.H2("HSS forecast"),
-        # html.Div(id="fig-forecast"),
+        html.H2("Risk value (next 20 hours)"),
+        html.Div(id="fig-hss-trend"),
     ],
     className="p-2",
 )
@@ -62,30 +60,17 @@ def update_location_and_forecast(location, data):
     return data
 
 
-# @callback(
-#     Output("fig-forecast", "children"),
-#     Input("session-storage-weather", "modified_timestamp"),
-#     State("session-storage-weather", "data"),
-# )
-# def update_fig_forecast(ts, data):
-#     try:
-#         df = pd.read_json(data, orient="split")
-#         return dcc.Graph(figure=heatmap_chart_tmp(df))
-#     except ValueError:
-#         raise PreventUpdate
-
-
-# @callback(
-#     Output("fig-hss-trend", "children"),
-#     Input("session-storage-weather", "modified_timestamp"),
-#     State("session-storage-weather", "data"),
-# )
-# def update_fig_hss_trend(ts, data):
-#     try:
-#         df = pd.read_json(data, orient="split")
-#         return dcc.Graph(figure=hss_gauge(df))
-#     except ValueError:
-#         raise PreventUpdate
+@callback(
+    Output("fig-hss-trend", "children"),
+    Input("session-storage-weather", "modified_timestamp"),
+    State("session-storage-weather", "data"),
+)
+def update_fig_hss_trend(ts, data):
+    try:
+        df = pd.read_json(data, orient="table")
+        return dcc.Graph(figure=risk_map(df))
+    except ValueError:
+        raise PreventUpdate
 
 
 @callback(
@@ -98,7 +83,7 @@ def update_location_and_forecast(location, data):
 )
 def update_alert_hss_current(ts, data):
     try:
-        df = pd.read_json(data, orient="split")
+        df = pd.read_json(data, orient="table")
         color = hss_palette[df["risk_value"][0]]
         description = sma_risk_messages[df["risk"][0]]["description"].capitalize()
         suggestion = sma_risk_messages[df["risk"][0]]["suggestions"].capitalize()

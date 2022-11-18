@@ -61,7 +61,7 @@ def calculated_comfort_indexes(ts, data_location, data_weather_ts):
     )
     df = calculate_comfort_indices(df)
 
-    return df.to_json(date_format="iso", orient="split")
+    return df.to_json(date_format="iso", orient="table")
 
 
 if __name__ == "__main__":
