@@ -51,7 +51,7 @@ layout = dbc.Container(
     State("local-storage-location", "data"),
 )
 def update_location_and_forecast(location, data):
-    data = data or {"lat": 0, "lon": 0}
+    data = data or {"lat": -33.888974101282976, "lon": 151.18501332682587}
 
     if location:
         data["lat"] = location[0]
@@ -98,10 +98,8 @@ def update_alert_hss_current(ts, data):
     State("local-storage-location", "data"),
 )
 def on_location_change(ts, data):
-    if ts is None:
-        raise PreventUpdate
 
-    data = data or {"lat": 0, "lon": 0}
+    data = data or {"lat": -33.888974101282976, "lon": 151.18501332682587}
     return dl.Map(
         [
             dl.TileLayer(maxZoom=13, minZoom=9),
