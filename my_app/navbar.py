@@ -6,9 +6,9 @@ def my_navbar():
         children=[
             dbc.NavItem(dbc.NavLink("Home", href="/")),
             dbc.NavItem(dbc.NavLink("About", href="about")),
-            dbc.NavItem(dbc.NavLink("Settings", href="settings")),
+            # dbc.NavItem(dbc.NavLink("Settings", href="settings")),
         ],
-        brand="Heat Stress Scale (HSS)",
+        brand="Extreme Heat Policy - Class 3",
         brand_href="/",
         color="#E64626",
         dark=True,

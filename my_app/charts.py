@@ -3,11 +3,10 @@ import plotly.graph_objects as go
 
 # from the AU museum https://australian.museum/about/organisation/media-centre/brand/colour/#Download
 hss_palette = {
-    1: "#006EB6",
-    2: "#00AD7C",
-    3: "#FFD039",
-    4: "#E45A01",
-    5: "#CB3327",
+    0: "#00AD7C",
+    1: "#FFD039",
+    2: "#E45A01",
+    3: "#CB3327",
 }
 
 

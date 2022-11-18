@@ -6,6 +6,8 @@ from my_app.charts import heatmap_chart_tmp, hss_trend, hss_palette, hss_gauge
 import dash
 import pandas as pd
 
+from utils import sma_risk_messages
+
 dash.register_page(__name__, path="/")
 
 
@@ -15,37 +17,31 @@ layout = dbc.Container(
         dbc.Alert(
             [
                 html.H3(
-                    "The current HSS value is:",
+                    "The current Sport Risk Value:",
                 ),
                 dcc.Loading(
                     html.H1(className="alert-heading", id="value-hss-current"),
                     style={"height": "40px"},
                 ),
-                # html.P("This is a placeholder describing the HSS value"),
+                html.P(
+                    id="value-risk-description",
+                ),
                 html.Hr(),
                 html.H5(
-                    "Advisory for the general public regarding activities outdoors: ",
+                    "Suggestions: ",
                 ),
-                html.P(
-                    "Healthy persons: Normal activities. ",
-                    className="mb-0",
-                ),
-                html.P(
-                    "Elderly, pregnant women, children: Normal activities.",
-                    className="mb-0",
-                ),
-                html.P(
-                    "People with lung or heart diseases: Normal activities.",
+                dcc.Markdown(
+                    id="value-risk-suggestions",
                     className="mb-0",
                 ),
             ],
             className="mt-1",
             id="alert-hss-current",
         ),
-        html.H2("HSS forecast"),
-        html.Div(id="fig-hss-trend"),
-        html.H2("HSS forecast"),
-        html.Div(id="fig-forecast"),
+        # html.H2("HSS forecast"),
+        # html.Div(id="fig-hss-trend"),
+        # html.H2("HSS forecast"),
+        # html.Div(id="fig-forecast"),
     ],
     className="p-2",
 )
@@ -66,43 +62,47 @@ def update_location_and_forecast(location, data):
     return data
 
 
-@callback(
-    Output("fig-forecast", "children"),
-    Input("session-storage-weather", "modified_timestamp"),
-    State("session-storage-weather", "data"),
-)
-def update_fig_forecast(ts, data):
-    try:
-        df = pd.read_json(data, orient="split")
-        return dcc.Graph(figure=heatmap_chart_tmp(df))
-    except ValueError:
-        raise PreventUpdate
+# @callback(
+#     Output("fig-forecast", "children"),
+#     Input("session-storage-weather", "modified_timestamp"),
+#     State("session-storage-weather", "data"),
+# )
+# def update_fig_forecast(ts, data):
+#     try:
+#         df = pd.read_json(data, orient="split")
+#         return dcc.Graph(figure=heatmap_chart_tmp(df))
+#     except ValueError:
+#         raise PreventUpdate
 
 
-@callback(
-    Output("fig-hss-trend", "children"),
-    Input("session-storage-weather", "modified_timestamp"),
-    State("session-storage-weather", "data"),
-)
-def update_fig_hss_trend(ts, data):
-    try:
-        df = pd.read_json(data, orient="split")
-        return dcc.Graph(figure=hss_gauge(df))
-    except ValueError:
-        raise PreventUpdate
+# @callback(
+#     Output("fig-hss-trend", "children"),
+#     Input("session-storage-weather", "modified_timestamp"),
+#     State("session-storage-weather", "data"),
+# )
+# def update_fig_hss_trend(ts, data):
+#     try:
+#         df = pd.read_json(data, orient="split")
+#         return dcc.Graph(figure=hss_gauge(df))
+#     except ValueError:
+#         raise PreventUpdate
 
 
 @callback(
     Output("value-hss-current", "children"),
     Output("alert-hss-current", "color"),
+    Output("value-risk-description", "children"),
+    Output("value-risk-suggestions", "children"),
     Input("session-storage-weather", "modified_timestamp"),
     State("session-storage-weather", "data"),
 )
 def update_alert_hss_current(ts, data):
     try:
         df = pd.read_json(data, orient="split")
-        color = hss_palette[df["hss"][0]]
-        return f"{df['hss'][0]} - {df['hss_set'][0]}", color
+        color = hss_palette[df["risk_value"][0]]
+        description = sma_risk_messages[df["risk"][0]]["description"].capitalize()
+        suggestion = sma_risk_messages[df["risk"][0]]["suggestions"].capitalize()
+        return f"{df['risk'][0]}".capitalize(), color, description, suggestion
     except ValueError:
         raise PreventUpdate
 

@@ -10,7 +10,7 @@ from my_app.footer import my_footer
 import os
 import dash
 
-from utils import calculate_comfort_indices
+from utils import calculate_comfort_indices, get_yr_weather
 
 app = Dash(
     __name__,
@@ -56,9 +56,10 @@ def calculated_comfort_indexes(ts, data_location, data_weather_ts):
         raise PreventUpdate
 
     print(f"{datetime.now()} getting comfort indices")
-    df = calculate_comfort_indices(
-        [round(data_location["lat"], 3), round(data_location["lon"], 3)]
+    df = get_yr_weather(
+        lat=round(data_location["lat"], 3), lon=round(data_location["lon"], 3)
     )
+    df = calculate_comfort_indices(df)
 
     return df.to_json(date_format="iso", orient="split")
 
