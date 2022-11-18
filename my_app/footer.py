@@ -13,7 +13,7 @@ def my_footer():
                                 """
                             © 2022 - Heat and Health Research Incubator, USyd
                             
-                            Version: 0.0.0
+                            Version: Version: Version: 0.0.1
                             """
                             ),
                             width=True,
