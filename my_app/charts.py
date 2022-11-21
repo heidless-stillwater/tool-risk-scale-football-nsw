@@ -125,7 +125,8 @@ def hss_gauge(df):
 def risk_map(df_for):
 
     values = []
-    for t in np.arange(10, 45):
+    t_min, t_max = 23, 45
+    for t in np.arange(t_min, t_max):
         for rh in np.arange(0, 100):
             values.append([t, rh])
     df = pd.DataFrame(values, columns=["tdb", "rh"])
@@ -133,8 +134,8 @@ def risk_map(df_for):
     df["top"] = 100
 
     df_for = df_for.head(10)
-
-    print(df_for)
+    df_for = df_for[df_for.tdb > t_min]
+    df_for = df_for[df_for.tdb < t_max]
 
     fig = go.Figure()
     fig.add_trace(
