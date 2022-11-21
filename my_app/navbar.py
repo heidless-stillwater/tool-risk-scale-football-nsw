@@ -8,7 +8,7 @@ def my_navbar():
             dbc.NavItem(dbc.NavLink("About", href="about")),
             # dbc.NavItem(dbc.NavLink("Settings", href="settings")),
         ],
-        brand="Extreme Heat Policy - Class 3",
+        brand="SMA Extreme Heat Policy",
         brand_href="/",
         color="#E64626",
         dark=True,

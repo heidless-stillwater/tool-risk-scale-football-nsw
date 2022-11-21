@@ -144,7 +144,6 @@ def update_settings_storage_based_dropdown(data, *args):
 )
 def display_page(pathname, data):
     if data and pathname == "/settings":
-        print(data)
         __questions = deepcopy(questions)
         for ix, q in enumerate(__questions):
             __questions[ix]["default"] = data[q["id"]]

@@ -31,8 +31,8 @@ sma_risk_messages = {
         losses, but it is important to avoid over-drinking because this can also have negative
         health effects. To familiarise yourself with how much you typically sweat, become
         accustomed to weighing yourself before and after practice or competition.
-        * Where possible, select light-weight and breathable clothing with extra ventilation
-        * Remove unnecessary clothing/equipment and/or excess clothing layers
+        * Where possible, select light-weight and breathable clothing with extra ventilation.
+        * Remove unnecessary clothing/equipment and/or excess clothing layers.
         * Reduce the amount of skin that is covered by clothing – this will help increase your
         sweat evaporation, which will help you dissipate heat.
             """,
@@ -69,14 +69,14 @@ sma_risk_messages = {
         ),
         "suggestions": """
         * Drinking cold fluids and/or ice slushies before exercise commences. Note that cold water
-        and ice slushy ingestion during exercise is less effective for cooling
-        * Submerging your arms/feet in cold water
+        and ice slushy ingestion during exercise is less effective for cooling.
+        * Submerging your arms/feet in cold water.
         * Water dousing – wetting your skin with cool water using a sponge or a spray bottle helps
-        increase evaporation, which is the most effective cooling mechanism in the heat
+        increase evaporation, which is the most effective cooling mechanism in the heat.
         * Ice packs/towels – placing an ice pack or damp towel filled with crushed ice around your
-        neck
+        neck.
         * Electric (misting) fans – outdoor fans can help keep your body cool, especially when
-        combined with a water misting system
+        combined with a water misting system.
             """,
     },
     "extreme": {
@@ -86,7 +86,7 @@ sma_risk_messages = {
         ),
         "suggestions": """
         * All players should seek shade or cool refuge in an air-conditioned space if available
-        * Active cooling strategies should be applied
+        * Active cooling strategies should be applied.
             """,
     },
 }

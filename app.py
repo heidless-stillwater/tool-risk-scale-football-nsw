@@ -55,13 +55,16 @@ def calculated_comfort_indexes(ts, data_location, data_weather_ts):
     if data_weather_ts != -1 and ((time.time() * 1000 - ts) / 1000) < 5 * 60:
         raise PreventUpdate
 
-    print(f"{datetime.now()} getting comfort indices")
-    df = get_yr_weather(
-        lat=round(data_location["lat"], 3), lon=round(data_location["lon"], 3)
-    )
-    df = calculate_comfort_indices(df)
+    try:
+        print(f"{datetime.now()} getting comfort indices")
+        df = get_yr_weather(
+            lat=round(data_location["lat"], 3), lon=round(data_location["lon"], 3)
+        )
+        df = calculate_comfort_indices(df)
 
-    return df.to_json(date_format="iso", orient="table")
+        return df.to_json(date_format="iso", orient="table")
+    except:
+        raise PreventUpdate
 
 
 if __name__ == "__main__":

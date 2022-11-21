@@ -17,7 +17,7 @@ layout = dbc.Container(
         dbc.Alert(
             [
                 html.H3(
-                    "The current Sport Risk Value:",
+                    "The current Heat Stress Risk:",
                 ),
                 dcc.Loading(
                     html.H1(className="alert-heading", id="value-hss-current"),
@@ -26,6 +26,7 @@ layout = dbc.Container(
                 html.P(
                     id="value-risk-description",
                 ),
+                html.Div(id="div-icons-suggestions"),
                 html.Hr(),
                 html.H5(
                     "Suggestions: ",
@@ -51,7 +52,7 @@ layout = dbc.Container(
     State("local-storage-location", "data"),
 )
 def update_location_and_forecast(location, data):
-    data = data or {"lat": -33.888974101282976, "lon": 151.18501332682587}
+    data = data or {"lat": -33.888, "lon": 151.185}
 
     if location:
         data["lat"] = location[0]
@@ -78,6 +79,7 @@ def update_fig_hss_trend(ts, data):
     Output("alert-hss-current", "color"),
     Output("value-risk-description", "children"),
     Output("value-risk-suggestions", "children"),
+    Output("div-icons-suggestions", "children"),
     Input("session-storage-weather", "modified_timestamp"),
     State("session-storage-weather", "data"),
 )
@@ -87,7 +89,27 @@ def update_alert_hss_current(ts, data):
         color = hss_palette[df["risk_value"][0]]
         description = sma_risk_messages[df["risk"][0]]["description"].capitalize()
         suggestion = sma_risk_messages[df["risk"][0]]["suggestions"].capitalize()
-        return f"{df['risk'][0]}".capitalize(), color, description, suggestion
+        icons = [
+            html.Img(src="../assets/icons/water-bottle.png", width="50px"),
+            html.Img(src="../assets/icons/tshirt.png", width="50px"),
+        ]
+        if suggestion == "moderate":
+            icons.append(
+                html.Img(src="../assets/icons/pause.png", width="50px"),
+            )
+        if suggestion == "high":
+            icons.append(
+                html.Img(src="../assets/icons/pause.png", width="50px"),
+            )
+            icons.append(
+                html.Img(src="../assets/icons/slush-drink.png", width="50px"),
+            )
+        if suggestion == "extreme":
+            icons = html.Img(
+                src="../assets/icons/stop.png",
+                width="100px",
+            )
+        return f"{df['risk'][0]}".capitalize(), color, description, suggestion, icons
     except ValueError:
         raise PreventUpdate
 
@@ -99,14 +121,20 @@ def update_alert_hss_current(ts, data):
 )
 def on_location_change(ts, data):
 
-    data = data or {"lat": -33.888974101282976, "lon": 151.18501332682587}
+    start_location_control = True
+    if data:
+        start_location_control = False
+    print(data)
+
+    data = data or {"lat": -33.888, "lon": 151.185}
     return dl.Map(
         [
             dl.TileLayer(maxZoom=13, minZoom=9),
             dl.LocateControl(
-                startDirectly=True,
+                startDirectly=start_location_control,
                 options={"locateOptions": {"enableHighAccuracy": True}},
             ),
+            dl.Marker(position=[data["lat"], data["lon"]]),
         ],
         id="map",
         style={
