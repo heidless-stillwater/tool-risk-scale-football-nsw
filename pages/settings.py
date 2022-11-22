@@ -3,97 +3,18 @@ import dash
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 from copy import deepcopy
+from utils import sports_category
 
 dash.register_page(__name__)
+
 
 # from https://www.health.vic.gov.au/environmental-health/extreme-heat-information-for-clinicians
 questions = [
     {
-        "id": "demo-sex",
-        "question": "Sex:",
-        "options": [
-            "Male",
-            "Female",
-            "Other",
-            "Prefer not to say",
-        ],
+        "id": "id-class",
+        "question": "Please select a sport:",
+        "options": list(sports_category.keys()),
         "multi": False,
-        "default": [],
-    },
-    {
-        "id": "demo-age",
-        "question": "Select your age group",
-        "options": [
-            "< 20",
-            "20 - 35",
-            "35 - 50",
-            "50 - 75",
-            "> 75",
-        ],
-        "multi": False,
-        "default": [],
-    },
-    {
-        "id": "demo-activity",
-        "question": "Occupation and recreation",
-        "options": [
-            "Vigorous exercise outdoors",
-            "Work outdoors",
-        ],
-        "multi": True,
-        "default": [],
-    },
-    {
-        "id": "demo-illnesses",
-        "question": "Chronic illness (select all the applicable)",
-        "options": [
-            "Heart disease",
-            "Diabetes",
-            "Hypertension",
-            "Cancer",
-            "Kidney disease",
-            "Substance abuse",
-            "Mental illness",
-        ],
-        "multi": True,
-        "default": [],
-    },
-    {
-        "id": "demo-group-risk",
-        "question": "Are you in any this groups at greater risk?",
-        "options": [
-            "people over the age of 65",
-            "infants and young children",
-            "people who are overweight or obese",
-            "pregnant women and breastfeeding mothers",
-            "people who have low cardiovascular fitness",
-            "people who are not acclimatised to hot weather",
-        ],
-        "multi": True,
-        "default": [],
-    },
-    {
-        "id": "demo-medications",
-        "question": "Are you taking any of the following medications?",
-        "options": [
-            "antibiotics",
-            "adrenergic drugs",
-            "insulin",
-            "analgesics",
-            "sedatives",
-        ],
-        "multi": True,
-        "default": [],
-    },
-    {
-        "id": "demo-social-factors",
-        "question": "Social factors",
-        "options": [
-            "live alone or are socially isolated",
-            "have a low socioeconomic status",
-            "are homeless",
-        ],
-        "multi": True,
         "default": [],
     },
 ]
@@ -105,7 +26,7 @@ def generate_dropdown(questions_to_display):
             [
                 html.Label(
                     item["question"],
-                    className="pb-2",
+                    className="py-2",
                 ),
                 dcc.Dropdown(
                     item["options"], item["default"], multi=item["multi"], id=item["id"]
@@ -117,11 +38,12 @@ def generate_dropdown(questions_to_display):
     ]
 
 
-layout = dbc.Container(
-    [dcc.Location(id="url"), html.Div(id="settings-dropdowns")],
-    className="p-2",
-    style={"min-height": "80vh"},
-)
+def layout():
+    return dbc.Container(
+        [dcc.Location(id="url"), html.Div(id="settings-dropdowns")],
+        className="p-2",
+        style={"min-height": "80vh"},
+    )
 
 
 @callback(
@@ -134,6 +56,8 @@ def update_settings_storage_based_dropdown(data, *args):
     data = data or {}
     for ix, question_id in enumerate([question["id"] for question in questions]):
         data[question_id] = args[ix]
+
+    print(data)
     return data
 
 

@@ -6,7 +6,7 @@ def my_navbar():
         children=[
             dbc.NavItem(dbc.NavLink("Home", href="/")),
             dbc.NavItem(dbc.NavLink("About", href="about")),
-            # dbc.NavItem(dbc.NavLink("Settings", href="settings")),
+            dbc.NavItem(dbc.NavLink("Settings", href="settings")),
         ],
         brand="SMA Extreme Heat Policy",
         brand_href="/",

@@ -6,44 +6,72 @@ from my_app.charts import hss_palette, risk_map
 import dash
 import pandas as pd
 
-from utils import sma_risk_messages
+from utils import sma_risk_messages, sports_category
 
 dash.register_page(__name__, path="/")
 
 
-layout = dbc.Container(
-    children=[
-        html.Div(id="map-component"),
-        dbc.Alert(
-            [
-                html.H3(
-                    "The current Heat Stress Risk:",
-                ),
-                dcc.Loading(
-                    html.H1(className="alert-heading", id="value-hss-current"),
-                    style={"height": "40px"},
-                ),
-                html.P(
-                    id="value-risk-description",
-                ),
-                html.Div(id="div-icons-suggestions"),
-                html.Hr(),
-                html.H5(
-                    "Suggestions: ",
-                ),
-                dcc.Markdown(
-                    id="value-risk-suggestions",
-                    className="mb-0",
-                ),
-            ],
-            className="mt-1",
-            id="alert-hss-current",
-        ),
-        html.H2("Risk value (next 20 hours)"),
-        html.Div(id="fig-hss-trend"),
-    ],
-    className="p-2",
+def layout():
+    return dbc.Container(
+        children=[html.Div(id="map-component"), html.Div(id="body-home")],
+        className="p-2",
+    )
+
+
+@callback(
+    Output("body-home", "children"),
+    Input("local-storage-settings", "data"),
 )
+def body(data):
+    print(data)
+    if not data:
+        return (
+            dbc.Alert(
+                "Please select a sport in the Settings Page",
+                id="sport-selection",
+                color="danger",
+                className="mt-2",
+            ),
+        )
+    if not data["id-class"]:
+        return (
+            dbc.Alert(
+                "Please return to the Settings Page and select a sport",
+                id="sport-selection",
+                color="danger",
+                className="mt-2",
+            ),
+        )
+    else:
+        return [
+            dbc.Alert(
+                [
+                    html.H3(
+                        "The current Heat Stress Risk:",
+                    ),
+                    dcc.Loading(
+                        html.H1(className="alert-heading", id="value-hss-current"),
+                        style={"height": "40px"},
+                    ),
+                    html.P(
+                        id="value-risk-description",
+                    ),
+                    html.Div(id="div-icons-suggestions"),
+                    html.Hr(),
+                    html.H5(
+                        "Suggestions: ",
+                    ),
+                    dcc.Markdown(
+                        id="value-risk-suggestions",
+                        className="mb-0",
+                    ),
+                ],
+                className="mt-1",
+                id="alert-hss-current",
+            ),
+            html.H2("Risk value (next 20 hours)"),
+            html.Div(id="fig-hss-trend"),
+        ]
 
 
 @callback(
@@ -65,11 +93,12 @@ def update_location_and_forecast(location, data):
     Output("fig-hss-trend", "children"),
     Input("session-storage-weather", "modified_timestamp"),
     State("session-storage-weather", "data"),
+    State("local-storage-settings", "data"),
 )
-def update_fig_hss_trend(ts, data):
+def update_fig_hss_trend(ts, data, data_sport):
     try:
         df = pd.read_json(data, orient="table")
-        return dcc.Graph(figure=risk_map(df))
+        return dcc.Graph(figure=risk_map(df, sports_category[data_sport["id-class"]]))
     except ValueError:
         raise PreventUpdate
 

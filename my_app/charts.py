@@ -122,15 +122,15 @@ def hss_gauge(df):
     return standard_layout(fig)
 
 
-def risk_map(df_for):
+def risk_map(df_for, sport_class):
 
     values = []
     t_min, t_max = 23, 45
-    for t in np.arange(t_min, t_max):
+    for t in np.arange(t_min, t_max + 1):
         for rh in np.arange(0, 100):
             values.append([t, rh])
     df = pd.DataFrame(values, columns=["tdb", "rh"])
-    df = calculate_comfort_indices(data=df)
+    df = calculate_comfort_indices(data_for=df, sport_class=sport_class)
     df["top"] = 100
 
     df_for = df_for.head(10)
@@ -170,11 +170,7 @@ def risk_map(df_for):
 
     fig = standard_layout(fig)
     fig.update_layout(
-        xaxis=dict(
-            title_text="Temperature [°C]",
-        ),
-        yaxis=dict(
-            title_text="Relative Humidity [%]",
-        ),
+        xaxis=dict(title_text="Temperature [°C]", range=[t_min, t_max], dtick=2),
+        yaxis=dict(title_text="Relative Humidity [%]", range=[5, 95]),
     )
     return fig

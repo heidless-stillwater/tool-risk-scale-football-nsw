@@ -10,7 +10,7 @@ from my_app.footer import my_footer
 import os
 import dash
 
-from utils import calculate_comfort_indices, get_yr_weather
+from utils import calculate_comfort_indices, get_yr_weather, sports_category
 
 app = Dash(
     __name__,
@@ -46,13 +46,17 @@ app.layout = html.Div(
     Output("session-storage-weather", "data"),
     Input("local-storage-location", "modified_timestamp"),
     State("local-storage-location", "data"),
+    State("local-storage-settings", "data"),
     State("session-storage-weather", "modified_timestamp"),
 )
-def calculated_comfort_indexes(ts, data_location, data_weather_ts):
+def calculated_comfort_indexes(ts, data_location, data_sport, data_weather_ts):
     if ts is None:
         raise PreventUpdate
 
     if data_weather_ts != -1 and ((time.time() * 1000 - ts) / 1000) < 5 * 60:
+        raise PreventUpdate
+
+    if not data_sport:
         raise PreventUpdate
 
     try:
@@ -60,7 +64,7 @@ def calculated_comfort_indexes(ts, data_location, data_weather_ts):
         df = get_yr_weather(
             lat=round(data_location["lat"], 3), lon=round(data_location["lon"], 3)
         )
-        df = calculate_comfort_indices(df)
+        df = calculate_comfort_indices(df, sports_category[data_sport["id-class"]])
 
         return df.to_json(date_format="iso", orient="table")
     except:

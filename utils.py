@@ -8,6 +8,48 @@ import pandas as pd
 import requests
 import pytz
 
+sports_category = {
+    "Walking": 1,
+    "Archery": 2,
+    "Bowls": 2,
+    "Field Athletics": 2,
+    "Fishing": 2,
+    "Golf": 2,
+    "Lifesaving Surf": 2,
+    "Sailing": 2,
+    "Shooting": 2,
+    "(Pistol / Trap)": 2,
+    "Walking(brisk)": 2,
+    "Abseiling": 3,
+    "Australian Football": 3,
+    "Basketball": 3,
+    "Cycling": 3,
+    "Canoeing": 3,
+    "Caving": 3,
+    "Kayaking": 3,
+    "Netball": 3,
+    "Oztag": 3,
+    "Rock Climbing": 3,
+    "Rowing": 3,
+    "Soccer": 3,
+    "Tennis": 3,
+    "Touch Football": 3,
+    "Long Distance Running": 3,
+    "Triathlon": 3,
+    "Volleyball": 3,
+    "Baseball": 4,
+    "Bush-walking": 4,
+    "Cricket": 4,
+    "Equestrian": 4,
+    "Horseback riding": 4,
+    "Motor Cycling": 4,
+    "Rugby Union": 4,
+    "Rugby League": 4,
+    "Softball": 4,
+    "Field Hockey": 5,
+    "Mountain Biking": 5,
+}
+
 headers = {
     "User-Agent": (
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) "
@@ -115,27 +157,41 @@ def get_yr_weather(lat=-33.8862, lon=151.1791):
     return df_weather
 
 
-def calculate_comfort_indices(data):
+def calculate_comfort_indices(data_for, sport_class):
 
-    data["moderate"] = 0.1589 * data["tdb"] ** 2 - 15.494 * data["tdb"] + 362.71
-    data["high"] = 0.1353 * data["tdb"] ** 2 - 14.312 * data["tdb"] + 363.2
-    data["extreme"] = 360.36 - 13.016 * data["tdb"] + 0.1116 * data["tdb"] ** 2
+    lines = generate_regression_curves(sport_class)
+    data_for["moderate"] = lines[1](data_for["tdb"])
+    data_for["high"] = lines[2](data_for["tdb"])
+    data_for["extreme"] = lines[3](data_for["tdb"])
 
-    data["risk"] = "low"
+    data_for["risk"] = "low"
     for risk in ["moderate", "high", "extreme"]:
-        data.loc[data[risk] < 0, risk] = 0
-        data.loc[data[risk] > 100, risk] = 100
-        data.loc[(data["tdb"] > 26) & (data["rh"] > data[risk]), "risk"] = risk
+        data_for.loc[data_for[risk] < 0, risk] = 0
+        data_for.loc[data_for[risk] > 100, risk] = 100
+        data_for.loc[
+            (data_for["tdb"] > 26) & (data_for["rh"] > data_for[risk]), "risk"
+        ] = risk
 
     risk_value = {"low": 0, "moderate": 1, "high": 2, "extreme": 3}
-    data["risk_value"] = data["risk"].map(risk_value)
+    data_for["risk_value"] = data_for["risk"].map(risk_value)
 
-    return data
+    return data_for
+
+
+def generate_regression_curves(sport_class):
+    df_points = pd.read_csv("./assets/points_curves.csv")
+    df_class = df_points[df_points["class"] == sport_class]
+    regressions_lines = {}
+    for line in df_class["line"].unique():
+        df_line = df_class[df_class["line"] == line]
+        z = np.polyfit(df_line.x, df_line.y, 2)
+        regressions_lines[line] = np.poly1d(z)
+    return regressions_lines
 
 
 if __name__ == "__main__":
     df = get_yr_weather(lat=-33.889, lon=151.184)
-    df_results = calculate_comfort_indices(df)
+    df_results = calculate_comfort_indices(df, sport_class=2)
 
     # test
     values = []
@@ -143,5 +199,5 @@ if __name__ == "__main__":
         for rh in np.arange(0, 100, 1):
             values.append([t, rh])
     df = pd.DataFrame(values, columns=["tdb", "rh"])
-    df_results = calculate_comfort_indices(data=df)
+    df_results = calculate_comfort_indices(data_for=df, sport_class=2)
     df_plot = df_results.pivot("rh", "tdb", "risk").sort_index(ascending=False)
