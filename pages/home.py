@@ -25,8 +25,74 @@ def layout():
     Input("local-storage-settings", "data"),
 )
 def body(data):
-    print(data)
-    if not data:
+    try:
+        sport_selected = data["id-class"]
+        if not sport_selected:
+            return (
+                dbc.Alert(
+                    "Please return to the Settings Page and select a sport",
+                    id="sport-selection",
+                    color="danger",
+                    className="mt-2",
+                ),
+            )
+        else:
+            return [
+                dbc.Row(
+                    html.Div(
+                        id="id-icon-sport",
+                        className="p-2",
+                    ),
+                    justify="center",
+                ),
+                dbc.Row(
+                    dbc.Alert(
+                        [
+                            dbc.Col(
+                                [
+                                    html.H3(
+                                        "The current Heat Stress Risk:",
+                                    ),
+                                    dcc.Loading(
+                                        html.H1(
+                                            className="alert-heading",
+                                            id="value-hss-current",
+                                        ),
+                                    ),
+                                ],
+                                style={"text-align": "center"},
+                            ),
+                            html.Hr(),
+                            html.Div(id="div-icons-suggestions"),
+                        ],
+                        className="mt-1",
+                        id="id-alert-risk-current",
+                    ),
+                ),
+                dbc.Accordion(
+                    dbc.AccordionItem(
+                        [
+                            html.P(
+                                id="value-risk-description",
+                            ),
+                            html.P(
+                                "You should:",
+                            ),
+                            dcc.Markdown(
+                                id="value-risk-suggestions",
+                                className="mb-0",
+                            ),
+                        ],
+                        title="Suggestions: ",
+                    ),
+                    start_collapsed=True,
+                    className="my-2",
+                    id="id-accordion-risk-current",
+                ),
+                html.H2("Risk value (next 20 hours)"),
+                html.Div(id="fig-hss-trend"),
+            ]
+    except:
         return (
             dbc.Alert(
                 "Please select a sport in the Settings Page",
@@ -35,72 +101,6 @@ def body(data):
                 className="mt-2",
             ),
         )
-    if not data["id-class"]:
-        return (
-            dbc.Alert(
-                "Please return to the Settings Page and select a sport",
-                id="sport-selection",
-                color="danger",
-                className="mt-2",
-            ),
-        )
-    else:
-        return [
-            dbc.Row(
-                html.Div(
-                    id="id-icon-sport",
-                    className="p-2",
-                ),
-                justify="center",
-            ),
-            dbc.Row(
-                dbc.Alert(
-                    [
-                        dbc.Col(
-                            [
-                                html.H3(
-                                    "The current Heat Stress Risk:",
-                                ),
-                                dcc.Loading(
-                                    html.H1(
-                                        className="alert-heading",
-                                        id="value-hss-current",
-                                    ),
-                                ),
-                            ],
-                            style={"text-align": "center"},
-                        ),
-                        html.Hr(),
-                        html.Div(id="div-icons-suggestions"),
-                    ],
-                    className="mt-1",
-                    id="id-alert-risk-current",
-                ),
-            ),
-            dbc.Accordion(
-                dbc.AccordionItem(
-                    [
-                        html.P(
-                            id="value-risk-description",
-                        ),
-                        html.P(
-                            "You should:",
-                        ),
-                        dcc.Markdown(
-                            id="value-risk-suggestions",
-                            className="mb-0",
-                        ),
-                    ],
-                    title="Suggestions: ",
-                ),
-                start_collapsed=True,
-                # flush=True,
-                className="my-2",
-                id="id-accordion-risk-current",
-            ),
-            html.H2("Risk value (next 20 hours)"),
-            html.Div(id="fig-hss-trend"),
-        ]
 
 
 def icon_component(src, message, size="50px"):
@@ -144,7 +144,10 @@ def update_location_and_forecast(location, data):
 )
 def update_location_and_forecast(data_sport):
 
-    file_name = f"{data_sport['id-class']}.png"
+    try:
+        file_name = f"{data_sport['id-class']}.png"
+    except KeyError:
+        raise PreventUpdate
     path = os.path.join(os.getcwd(), "assets", "icons", file_name)
     # source https://www.theolympicdesign.com/olympic-design/pictograms/tokyo-2020/
     if os.path.isfile(path):
