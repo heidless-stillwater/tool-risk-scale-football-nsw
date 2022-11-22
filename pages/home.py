@@ -1,3 +1,5 @@
+import os
+
 from dash import html, dcc, Output, Input, State, callback
 import dash_bootstrap_components as dbc
 import dash_leaflet as dl
@@ -44,34 +46,81 @@ def body(data):
         )
     else:
         return [
-            dbc.Alert(
-                [
-                    html.H3(
-                        "The current Heat Stress Risk:",
-                    ),
-                    dcc.Loading(
-                        html.H1(className="alert-heading", id="value-hss-current"),
-                        style={"height": "40px"},
-                    ),
-                    html.P(
-                        id="value-risk-description",
-                    ),
-                    html.Div(id="div-icons-suggestions"),
-                    html.Hr(),
-                    html.H5(
-                        "Suggestions: ",
-                    ),
-                    dcc.Markdown(
-                        id="value-risk-suggestions",
-                        className="mb-0",
-                    ),
-                ],
-                className="mt-1",
-                id="alert-hss-current",
+            dbc.Row(
+                html.Div(
+                    id="id-icon-sport",
+                    className="p-2",
+                ),
+                justify="center",
+            ),
+            dbc.Row(
+                dbc.Alert(
+                    [
+                        dbc.Col(
+                            [
+                                html.H3(
+                                    "The current Heat Stress Risk:",
+                                ),
+                                dcc.Loading(
+                                    html.H1(
+                                        className="alert-heading",
+                                        id="value-hss-current",
+                                    ),
+                                ),
+                            ],
+                            style={"text-align": "center"},
+                        ),
+                        html.Hr(),
+                        html.Div(id="div-icons-suggestions"),
+                    ],
+                    className="mt-1",
+                    id="id-alert-risk-current",
+                ),
+            ),
+            dbc.Accordion(
+                dbc.AccordionItem(
+                    [
+                        html.P(
+                            id="value-risk-description",
+                        ),
+                        html.P(
+                            "You should:",
+                        ),
+                        dcc.Markdown(
+                            id="value-risk-suggestions",
+                            className="mb-0",
+                        ),
+                    ],
+                    title="Suggestions: ",
+                ),
+                start_collapsed=True,
+                # flush=True,
+                className="my-2",
+                id="id-accordion-risk-current",
             ),
             html.H2("Risk value (next 20 hours)"),
             html.Div(id="fig-hss-trend"),
         ]
+
+
+def icon_component(src, message, size="50px"):
+    return dbc.Row(
+        [
+            dbc.Col(
+                html.Img(src=src, width=size),
+                style={"text-align": "right"},
+                width="auto",
+            ),
+            dbc.Col(
+                message,
+                width="auto",
+                style={"text-align": "left"},
+            ),
+        ],
+        align="center",
+        justify="center",
+        className="my-1",
+    )
 
 
 @callback(
@@ -90,6 +139,23 @@ def update_location_and_forecast(location, data):
 
 
 @callback(
+    Output("id-icon-sport", "children"),
+    Input("local-storage-settings", "data"),
+)
+def update_location_and_forecast(data_sport):
+
+    file_name = f"{data_sport['id-class']}.png"
+    path = os.path.join(os.getcwd(), "assets", "icons", file_name)
+    # source https://www.theolympicdesign.com/olympic-design/pictograms/tokyo-2020/
+    if os.path.isfile(path):
+        return icon_component(
+            f"../assets/icons/{data_sport['id-class']}.png", data_sport["id-class"]
+        )
+    else:
+        return icon_component("../assets/icons/sports.png", data_sport["id-class"])
+
+
+@callback(
     Output("fig-hss-trend", "children"),
     Input("session-storage-weather", "modified_timestamp"),
     State("session-storage-weather", "data"),
@@ -98,14 +164,17 @@ def update_location_and_forecast(location, data):
 def update_fig_hss_trend(ts, data, data_sport):
     try:
         df = pd.read_json(data, orient="table")
-        return dcc.Graph(figure=risk_map(df, sports_category[data_sport["id-class"]]))
+        return dcc.Graph(
+            figure=risk_map(df, sports_category[data_sport["id-class"]]),
+            config={"staticPlot": True},
+        )
     except ValueError:
         raise PreventUpdate
 
 
 @callback(
     Output("value-hss-current", "children"),
-    Output("alert-hss-current", "color"),
+    Output("id-alert-risk-current", "color"),
     Output("value-risk-description", "children"),
     Output("value-risk-suggestions", "children"),
     Output("div-icons-suggestions", "children"),
@@ -119,25 +188,26 @@ def update_alert_hss_current(ts, data):
         description = sma_risk_messages[df["risk"][0]]["description"].capitalize()
         suggestion = sma_risk_messages[df["risk"][0]]["suggestions"].capitalize()
         icons = [
-            html.Img(src="../assets/icons/water-bottle.png", width="50px"),
-            html.Img(src="../assets/icons/tshirt.png", width="50px"),
+            icon_component("../assets/icons/water-bottle.png", "Stay hydrated"),
+            icon_component("../assets/icons/tshirt.png", "Wear light clothing"),
         ]
         if suggestion == "moderate":
             icons.append(
-                html.Img(src="../assets/icons/pause.png", width="50px"),
+                icon_component("../assets/icons/pause.png", "Rest Breaks"),
             )
         if suggestion == "high":
             icons.append(
-                html.Img(src="../assets/icons/pause.png", width="50px"),
+                icon_component("../assets/icons/pause.png", "Rest Breaks"),
             )
             icons.append(
-                html.Img(src="../assets/icons/slush-drink.png", width="50px"),
+                icon_component("../assets/icons/slush-drink.png", "Active Cooling"),
             )
         if suggestion == "extreme":
-            icons = html.Img(
-                src="../assets/icons/stop.png",
-                width="100px",
-            )
+            icons = [
+                icon_component(
+                    "../assets/icons/stop.png", "Stop Activity", size="100px"
+                ),
+            ]
         return f"{df['risk'][0]}".capitalize(), color, description, suggestion, icons
     except ValueError:
         raise PreventUpdate
@@ -164,6 +234,7 @@ def on_location_change(ts, data):
                 options={"locateOptions": {"enableHighAccuracy": True}},
             ),
             dl.Marker(position=[data["lat"], data["lon"]]),
+            dl.GestureHandling(),
         ],
         id="map",
         style={
