@@ -122,7 +122,7 @@ def indicator_chart(df_for, sport_class):
     fig = go.Figure(
         go.Indicator(
             mode="gauge",
-            value=data["tdb"],
+            value=data["rh"],
             domain={"x": [0, 1], "y": [0, 1]},
             gauge={
                 "shape": "bullet",
@@ -133,7 +133,7 @@ def indicator_chart(df_for, sport_class):
         )
     )
     fig.add_annotation(
-        x=data["rh"] / 200, y=1, text="Now", showarrow=False, font=dict(color="#000")
+        x=data["rh"] / 100, y=1, text="Now", showarrow=False, font=dict(color="#000")
     )
     fig = standard_layout(fig)
     fig.update_layout(height=60)
