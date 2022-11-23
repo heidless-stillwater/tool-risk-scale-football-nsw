@@ -80,17 +80,21 @@ app.layout = html.Div(
 
 @app.callback(
     Output("session-storage-weather", "data"),
-    Input("local-storage-location", "modified_timestamp"),
+    Input("url", "pathname"),
     Input("local-storage-settings", "modified_timestamp"),
     State("local-storage-location", "data"),
     State("local-storage-settings", "data"),
     State("session-storage-weather", "modified_timestamp"),
 )
 def calculated_comfort_indexes(
-    ts_location, ts_sport, data_location, data_sport, data_weather_ts
+    url, ts_sport, data_location, data_sport, data_weather_ts
 ):
-    print("Querying weather data")
+
+    print(url)
+    if url != "/":
+        raise PreventUpdate
     try:
+        print("Querying weather data")
         df = get_yr_weather(
             lat=round(data_location["lat"], 3), lon=round(data_location["lon"], 3)
         )
