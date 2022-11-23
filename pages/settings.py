@@ -5,7 +5,12 @@ from dash.exceptions import PreventUpdate
 from copy import deepcopy
 from utils import sports_category
 
-dash.register_page(__name__)
+dash.register_page(
+    __name__,
+    title="Settings Page",
+    name="Settings Page",
+    description="This is the settings page of the SMA Extreme Policy Tool",
+)
 
 
 # from https://www.health.vic.gov.au/environmental-health/extreme-heat-information-for-clinicians
@@ -40,7 +45,16 @@ def generate_dropdown(questions_to_display):
 
 def layout():
     return dbc.Container(
-        [dcc.Location(id="url"), html.Div(id="settings-dropdowns")],
+        [
+            dcc.Location(id="url"),
+            html.Div(id="settings-dropdowns"),
+            html.Div(
+                [
+                    dbc.Button("Home Page", color="primary", href="/"),
+                ],
+                className="d-grid gap-2 col-4 mx-auto",
+            ),
+        ],
         className="p-2",
         style={"min-height": "80vh"},
     )

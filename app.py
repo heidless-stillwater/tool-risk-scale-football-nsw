@@ -64,6 +64,7 @@ app.layout = html.Div(
         dcc.Store(id="local-storage-location", storage_type="local"),
         dcc.Store(id="local-storage-settings", storage_type="local"),
         dcc.Store(id="session-storage-weather", storage_type="session"),
+        html.Div(id="id-google-analytics-event"),
         my_navbar(),
         html.Div(dash.page_container, style={"flex": 1}),
         my_footer(),
@@ -104,6 +105,23 @@ def calculated_comfort_indexes(ts, data_location, data_sport, data_weather_ts):
         return df.to_json(date_format="iso", orient="table")
     except:
         raise PreventUpdate
+
+
+app.clientside_callback(
+    """
+    function(pathname, data){
+        if (data && pathname === "/"){
+            console.log(pathname);
+            console.log("writing to google analytics");
+            return gtag('event', 'sport_selection', {
+                                'sport_selected': data["id-class"],
+            })
+        }
+    }
+    """,
+    Output("id-google-analytics-event", "children"),
+    [Input("url", "pathname"), State("local-storage-settings", "data")],
+)
 
 
 if __name__ == "__main__":

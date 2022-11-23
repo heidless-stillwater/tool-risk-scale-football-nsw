@@ -1,8 +1,8 @@
 import dash
-from dash import html, dcc
+from dash import dcc
 import dash_bootstrap_components as dbc
 
-dash.register_page(__name__)
+dash.register_page(__name__, title="About Page", name="About Page")
 
 body_text = """
 # Extreme Heat Policy

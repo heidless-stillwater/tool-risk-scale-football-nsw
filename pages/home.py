@@ -7,15 +7,25 @@ from dash.exceptions import PreventUpdate
 from my_app.charts import hss_palette, risk_map
 import dash
 import pandas as pd
-
 from utils import sma_risk_messages, sports_category
 
-dash.register_page(__name__, path="/")
+
+dash.register_page(
+    __name__,
+    path="/",
+    title="Home Page",
+    name="Home Page",
+    description="This is the home page of the SMA Extreme Policy Tool",
+)
 
 
 def layout():
     return dbc.Container(
-        children=[html.Div(id="map-component"), html.Div(id="body-home")],
+        children=[
+            dcc.Location(id="url"),
+            html.Div(id="map-component"),
+            html.Div(id="body-home"),
+        ],
         className="p-2",
     )
 
