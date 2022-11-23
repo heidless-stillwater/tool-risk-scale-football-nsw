@@ -1,4 +1,6 @@
 import warnings
+import dash_bootstrap_components as dbc
+from dash import html
 
 import numpy as np
 
@@ -7,6 +9,13 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 import pandas as pd
 import requests
 import pytz
+
+hss_palette = {
+    0: "#00AD7C",
+    1: "#FFD039",
+    2: "#E45A01",
+    3: "#CB3327",
+}
 
 sports_category = {
     "Walking": 1,
@@ -186,6 +195,35 @@ def generate_regression_curves(sport_class):
         z = np.polyfit(df_line.x, df_line.y, 2)
         regressions_lines[line] = np.poly1d(z)
     return regressions_lines
+
+
+def legend_risk():
+
+    legend_items = []
+    for ix, item in enumerate(["low", "moderate", "high", "extreme"]):
+        legend_items.append(
+            dbc.Col(
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            html.Div(
+                                style={
+                                    "height": "1em",
+                                    "width": "1em",
+                                    "background-color": hss_palette[ix],
+                                    "border-radius": "50%",
+                                }
+                            ),
+                        ),
+                        dbc.Col(item, className="p-0"),
+                    ],
+                    align="center",
+                ),
+                width="auto",
+            ),
+        )
+
+    return dbc.Row(legend_items, justify="around")
 
 
 if __name__ == "__main__":

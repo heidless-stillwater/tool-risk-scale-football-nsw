@@ -4,10 +4,10 @@ from dash import html, dcc, Output, Input, State, callback
 import dash_bootstrap_components as dbc
 import dash_leaflet as dl
 from dash.exceptions import PreventUpdate
-from my_app.charts import hss_palette, risk_map
+from my_app.charts import hss_palette, risk_map, indicator_chart
 import dash
 import pandas as pd
-from utils import sma_risk_messages, sports_category
+from utils import sma_risk_messages, sports_category, legend_risk
 
 
 dash.register_page(
@@ -56,28 +56,30 @@ def body(data):
                     justify="center",
                 ),
                 dbc.Row(
-                    dbc.Alert(
+                    dbc.Col(
                         [
-                            dbc.Col(
-                                [
-                                    html.H3(
-                                        "The current Heat Stress Risk:",
-                                    ),
-                                    dcc.Loading(
-                                        html.H1(
-                                            className="alert-heading",
-                                            id="value-hss-current",
-                                        ),
-                                    ),
-                                ],
-                                style={"text-align": "center"},
+                            html.H3(
+                                "The current Heat Stress Risk:",
                             ),
-                            html.Hr(),
-                            html.Div(id="div-icons-suggestions"),
+                            dcc.Loading(
+                                html.H1(
+                                    className="alert-heading",
+                                    id="value-hss-current",
+                                ),
+                            ),
                         ],
-                        className="mt-1",
-                        id="id-alert-risk-current",
+                        style={"text-align": "center"},
                     ),
+                ),
+                html.Div(id="fig-indicator"),
+                legend_risk(),
+                dbc.Alert(
+                    [
+                        # html.Hr(),
+                        html.Div(id="div-icons-suggestions"),
+                    ],
+                    className="mt-1",
+                    id="id-alert-risk-current",
                 ),
                 dbc.Accordion(
                     dbc.AccordionItem(
@@ -93,14 +95,15 @@ def body(data):
                                 className="mb-0",
                             ),
                         ],
-                        title="Suggestions: ",
+                        title="Detailed suggestions: ",
                     ),
                     start_collapsed=True,
                     className="my-2",
                     id="id-accordion-risk-current",
                 ),
-                html.H2("Risk value (next 20 hours)"),
+                html.H2("Risk value trend in the next 20 hours"),
                 html.Div(id="fig-hss-trend"),
+                legend_risk(),
             ]
     except:
         return (
@@ -179,6 +182,23 @@ def update_fig_hss_trend(ts, data, data_sport):
         df = pd.read_json(data, orient="table")
         return dcc.Graph(
             figure=risk_map(df, sports_category[data_sport["id-class"]]),
+            config={"staticPlot": True},
+        )
+    except ValueError:
+        raise PreventUpdate
+
+
+@callback(
+    Output("fig-indicator", "children"),
+    Input("session-storage-weather", "modified_timestamp"),
+    State("session-storage-weather", "data"),
+    State("local-storage-settings", "data"),
+)
+def update_fig_hss_trend(ts, data, data_sport):
+    try:
+        df = pd.read_json(data, orient="table")
+        return dcc.Graph(
+            figure=indicator_chart(df, sports_category[data_sport["id-class"]]),
             config={"staticPlot": True},
         )
     except ValueError:

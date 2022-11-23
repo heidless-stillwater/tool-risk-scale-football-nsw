@@ -111,7 +111,6 @@ app.clientside_callback(
     """
     function(pathname, data){
         if (data && pathname === "/"){
-            console.log(pathname);
             console.log("writing to google analytics");
             return gtag('event', 'sport_selection', {
                                 'sport_selected': data["id-class"],
