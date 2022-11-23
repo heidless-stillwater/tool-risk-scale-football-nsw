@@ -70,7 +70,6 @@ def update_settings_storage_based_dropdown(data, *args):
     for ix, question_id in enumerate([question["id"] for question in questions]):
         data[question_id] = args[ix]
 
-    print(data)
     return data
 
 

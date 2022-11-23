@@ -1,6 +1,4 @@
-import time
-
-from dash import Dash, Input, Output, State, ctx
+from dash import Dash, Input, Output, State
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 from dash import html, dcc
@@ -41,7 +39,7 @@ app.index_string = """<!DOCTYPE html>
     <meta name="description" content="The SMA Extreme Heat Policy tool allows you to quickly determine the risk of heath illness based on the type of sport you are playing anf the weather conditions">
     <title>SMA Extreme Heat Policy Tool</title>
     <meta property="og:image" content="https://github.com/FedericoTartarini/tool-risk-scale-football-nsw/blob/master/assets/icons/HHRI%20logo.png">
-    <meta property="og:description" content="The SMA Extreme Heat Policy tool allows you to quickly determine the risk of heath illness based on the type of sport you are playing anf the weather conditions">
+    <meta property="og:description" content="The SMA Extreme Heat Policy tool allows you to quickly determine the risk of heath illness based on the type of sport you are playing">
     <meta property="og:title" content="SMA Extreme Heat Policy Tool">
     {%favicon%}
     {%css%}
@@ -81,16 +79,11 @@ app.layout = html.Div(
 @app.callback(
     Output("session-storage-weather", "data"),
     Input("url", "pathname"),
-    Input("local-storage-settings", "modified_timestamp"),
     State("local-storage-location", "data"),
     State("local-storage-settings", "data"),
-    State("session-storage-weather", "modified_timestamp"),
 )
-def calculated_comfort_indexes(
-    url, ts_sport, data_location, data_sport, data_weather_ts
-):
+def calculated_comfort_indexes(url, data_location, data_sport):
 
-    print(url)
     if url != "/":
         raise PreventUpdate
     try:

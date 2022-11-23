@@ -231,30 +231,31 @@ def update_alert_hss_current(ts, data):
     try:
         df = pd.read_json(data, orient="table")
         color = hss_palette[df["risk_value"][0]]
-        description = sma_risk_messages[df["risk"][0]]["description"].capitalize()
-        suggestion = sma_risk_messages[df["risk"][0]]["suggestions"].capitalize()
+        risk_class = df["risk"].iloc[0]
+        description = sma_risk_messages[risk_class]["description"].capitalize()
+        suggestion = sma_risk_messages[risk_class]["suggestions"].capitalize()
         icons = [
             icon_component("../assets/icons/water-bottle.png", "Stay hydrated"),
             icon_component("../assets/icons/tshirt.png", "Wear light clothing"),
         ]
-        if suggestion == "moderate":
+        if risk_class == "moderate":
             icons.append(
                 icon_component("../assets/icons/pause.png", "Rest Breaks"),
             )
-        if suggestion == "high":
+        if risk_class == "high":
             icons.append(
                 icon_component("../assets/icons/pause.png", "Rest Breaks"),
             )
             icons.append(
                 icon_component("../assets/icons/slush-drink.png", "Active Cooling"),
             )
-        if suggestion == "extreme":
+        if risk_class == "extreme":
             icons = [
                 icon_component(
                     "../assets/icons/stop.png", "Stop Activity", size="100px"
                 ),
             ]
-        return f"{df['risk'][0]}".capitalize(), color, description, suggestion, icons
+        return f"{risk_class}".capitalize(), color, description, suggestion, icons
     except ValueError:
         raise PreventUpdate
 
