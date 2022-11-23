@@ -46,7 +46,6 @@ def generate_dropdown(questions_to_display):
 def layout():
     return dbc.Container(
         [
-            dcc.Location(id="url"),
             html.Div(id="settings-dropdowns"),
             html.Div(
                 [

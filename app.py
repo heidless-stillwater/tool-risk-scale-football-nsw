@@ -1,7 +1,6 @@
 import time
-from datetime import datetime
 
-from dash import Dash, Input, Output, State
+from dash import Dash, Input, Output, State, ctx
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 from dash import html, dcc
@@ -61,6 +60,7 @@ app.index_string = """<!DOCTYPE html>
 
 app.layout = html.Div(
     children=[
+        dcc.Location(id="url"),
         dcc.Store(id="local-storage-location", storage_type="local"),
         dcc.Store(id="local-storage-settings", storage_type="local"),
         dcc.Store(id="session-storage-weather", storage_type="session"),
@@ -81,30 +81,37 @@ app.layout = html.Div(
 @app.callback(
     Output("session-storage-weather", "data"),
     Input("local-storage-location", "modified_timestamp"),
+    Input("local-storage-settings", "modified_timestamp"),
     State("local-storage-location", "data"),
     State("local-storage-settings", "data"),
     State("session-storage-weather", "modified_timestamp"),
 )
-def calculated_comfort_indexes(ts, data_location, data_sport, data_weather_ts):
-    if ts is None:
-        raise PreventUpdate
+def calculated_comfort_indexes(
+    ts_location, ts_sport, data_location, data_sport, data_weather_ts
+):
+    # print(ctx.triggered_id)
+    # if ts_location is None or ts_sport is None:
+    #     raise PreventUpdate
+    #
+    # if not data_sport:
+    #     raise PreventUpdate
 
-    if data_weather_ts != -1 and ((time.time() * 1000 - ts) / 1000) < 5 * 60:
-        raise PreventUpdate
+    # todo it may not update if the page is inactive
+    if (
+        ctx.triggered_id == "local-storage-settings"
+        or data_weather_ts == -1
+        or ((time.time() * 1000 - ts_location) / 1000) > 5 * 60
+    ):
+        print("Querying weather data")
+        try:
+            df = get_yr_weather(
+                lat=round(data_location["lat"], 3), lon=round(data_location["lon"], 3)
+            )
+            df = calculate_comfort_indices(df, sports_category[data_sport["id-class"]])
 
-    if not data_sport:
-        raise PreventUpdate
-
-    try:
-        print(f"{datetime.now()} getting comfort indices")
-        df = get_yr_weather(
-            lat=round(data_location["lat"], 3), lon=round(data_location["lon"], 3)
-        )
-        df = calculate_comfort_indices(df, sports_category[data_sport["id-class"]])
-
-        return df.to_json(date_format="iso", orient="table")
-    except:
-        raise PreventUpdate
+            return df.to_json(date_format="iso", orient="table")
+        except:
+            raise PreventUpdate
 
 
 app.clientside_callback(

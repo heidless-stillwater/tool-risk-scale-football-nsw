@@ -22,7 +22,6 @@ dash.register_page(
 def layout():
     return dbc.Container(
         children=[
-            dcc.Location(id="url"),
             html.Div(id="map-component"),
             html.Div(id="body-home"),
         ],
@@ -38,14 +37,20 @@ def body(data):
     try:
         sport_selected = data["id-class"]
         if not sport_selected:
-            return (
+            return [
                 dbc.Alert(
                     "Please return to the Settings Page and select a sport",
                     id="sport-selection",
                     color="danger",
                     className="mt-2",
                 ),
-            )
+                html.Div(
+                    [
+                        dbc.Button("Settings Page", color="primary", href="/settings"),
+                    ],
+                    className="d-grid gap-2 col-4 mx-auto",
+                ),
+            ]
         else:
             return [
                 dbc.Row(
@@ -106,14 +111,22 @@ def body(data):
                 legend_risk(),
             ]
     except:
-        return (
+        return [
             dbc.Alert(
                 "Please select a sport in the Settings Page",
                 id="sport-selection",
                 color="danger",
                 className="mt-2",
             ),
-        )
+            html.Div(
+                [
+                    dbc.Button(
+                        "Go to the Settings Page", color="primary", href="/settings"
+                    ),
+                ],
+                className="d-grid gap-2 col-4 mx-auto",
+            ),
+        ]
 
 
 def icon_component(src, message, size="50px"):
@@ -256,7 +269,6 @@ def on_location_change(ts, data):
     start_location_control = True
     if data:
         start_location_control = False
-    print(data)
 
     data = data or {"lat": -33.888, "lon": 151.185}
     return dl.Map(
