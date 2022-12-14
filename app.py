@@ -29,7 +29,7 @@ app.index_string = """<!DOCTYPE html>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-    
+
       gtag('config', 'G-B66DGF5EH0');
     </script>
     <meta charset="utf-8">
@@ -93,6 +93,17 @@ app.clientside_callback(
 )
 
 
+@app.callback(
+    Output(f"navbar-collapse", "is_open"),
+    [Input(f"navbar-toggle", "n_clicks")],
+    [State(f"navbar-collapse", "is_open")],
+)
+def toggle_navbar_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+
 if __name__ == "__main__":
     app.run_server(
         debug=os.environ.get("DEBUG_DASH", True),
@@ -101,3 +112,90 @@ if __name__ == "__main__":
         processes=1,
         threaded=True,
     )
+
+# """
+# A simple app demonstrating how to manually construct a navbar with a customised
+# layout using the Navbar component and the supporting Nav, NavItem, NavLink,
+# NavbarBrand, and NavbarToggler components.
+#
+# Requires dash-bootstrap-components 0.3.0 or later
+# """
+# import dash
+# import dash_bootstrap_components as dbc
+# from dash import Input, Output, State, html
+#
+# PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
+#
+# app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+# # try running the app with one of the Bootswatch themes e.g.
+# # app = dash.Dash(external_stylesheets=[dbc.themes.JOURNAL])
+# # app = dash.Dash(external_stylesheets=[dbc.themes.SKETCHY])
+#
+# # make a reuseable navitem for the different examples
+# nav_item = dbc.NavItem(dbc.NavLink("Link", href="#"))
+#
+# # make a reuseable dropdown for the different examples
+# dropdown = dbc.DropdownMenu(
+#     children=[
+#         dbc.DropdownMenuItem("Entry 1"),
+#         dbc.DropdownMenuItem("Entry 2"),
+#         dbc.DropdownMenuItem(divider=True),
+#         dbc.DropdownMenuItem("Entry 3"),
+#     ],
+#     nav=True,
+#     in_navbar=True,
+#     label="Menu",
+# )
+#
+#
+# # this example that adds a logo to the navbar brand
+# logo = dbc.Navbar(
+#     dbc.Container(
+#         [
+#             html.A(
+#                 # Use row and col to control vertical alignment of logo / brand
+#                 dbc.Row(
+#                     [
+#                         dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px")),
+#                         dbc.Col(dbc.NavbarBrand("Logo", className="ms-2")),
+#                     ],
+#                     align="center",
+#                     className="g-0",
+#                 ),
+#                 href="https://plotly.com",
+#                 style={"textDecoration": "none"},
+#             ),
+#             dbc.NavbarToggler(id="navbar-toggler2", n_clicks=0),
+#             dbc.Collapse(
+#                 dbc.Nav(
+#                     [nav_item, dropdown],
+#                     className="ms-auto",
+#                     navbar=True,
+#                 ),
+#                 id="navbar-collapse2",
+#                 navbar=True,
+#             ),
+#         ],
+#     ),
+#     color="dark",
+#     dark=True,
+#     className="mb-5",
+# )
+#
+# app.layout = html.Div([logo])
+#
+#
+# # the same function (toggle_navbar_collapse) is used in all three callbacks
+# @app.callback(
+#     Output(f"navbar-collapse2", "is_open"),
+#     [Input(f"navbar-toggler2", "n_clicks")],
+#     [State(f"navbar-collapse2", "is_open")],
+# )
+# def toggle_navbar_collapse(n, is_open):
+#     if n:
+#         return not is_open
+#     return is_open
+#
+#
+# if __name__ == "__main__":
+#     app.run_server(debug=True, port=8888)
