@@ -14,6 +14,13 @@ dash.register_page(
 )
 
 df_postcodes = pd.read_csv("./assets/postcodes.csv")
+df_postcodes["sub-state-post"] = (
+    df_postcodes["suburb"]
+    + ", "
+    + df_postcodes["state"]
+    + ", "
+    + df_postcodes["postcode"].astype("str")
+)
 
 
 # from https://www.health.vic.gov.au/environmental-health/extreme-heat-information-for-clinicians
@@ -28,7 +35,7 @@ questions = [
     {
         "id": "id-postcode",
         "question": "Select current suburb (optional):",
-        "options": list(df_postcodes["suburb"].unique()),
+        "options": list(df_postcodes["sub-state-post"].unique()),
         "multi": False,
         "default": [],
     },
@@ -108,7 +115,7 @@ def display_page(pathname, data):
 )
 def display_page(value):
     if value:
-        information = df_postcodes[df_postcodes["suburb"] == value].to_dict(
+        information = df_postcodes[df_postcodes["sub-state-post"] == value].to_dict(
             orient="list"
         )
         print(information)

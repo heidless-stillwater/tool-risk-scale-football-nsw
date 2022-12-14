@@ -72,8 +72,8 @@ def body(data):
                             className="p-2",
                         ),
                         html.Hr(),
-                        html.H2(
-                            "The current Heat Stress Risk is:",
+                        html.H6(
+                            "Current Heat Stress Risk is:",
                         ),
                         dcc.Loading(
                             html.H1(
