@@ -1,24 +1,5 @@
 import dash_bootstrap_components as dbc
-import dash_bootstrap_components as dbc
-from dash import Input, Output, State, html
-from dash_bootstrap_components._components.Container import Container
-
-
-# def my_navbar():
-#     return dbc.NavbarSimple(
-#         children=[
-#             dbc.NavItem(dbc.NavLink("Home", href="/")),
-#             dbc.NavItem(dbc.NavLink("About", href="/about")),
-#             dbc.NavItem(dbc.NavLink("Settings", href="/settings")),
-#         ],
-#         brand="SMA Extreme Heat Policy",
-#         brand_href="/",
-#         color="#E64626",
-#         dark=True,
-#     )
-
-
-PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
+from dash import html
 
 
 def my_navbar():
@@ -29,8 +10,16 @@ def my_navbar():
                     # Use row and col to control vertical alignment of logo / brand
                     dbc.Row(
                         [
-                            dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px")),
-                            dbc.Col(dbc.NavbarBrand("Logo", className="ms-2")),
+                            dbc.Col(
+                                html.Img(
+                                    src="../assets/icons/HHRI logo.png", width="75px"
+                                )
+                            ),
+                            dbc.Col(
+                                dbc.NavbarBrand(
+                                    "SMA Heat Stress Policy", className="ms-2"
+                                )
+                            ),
                         ],
                         align="center",
                         className="g-0",
@@ -54,7 +43,7 @@ def my_navbar():
                 ),
             ],
         ),
-        color="dark",
+        color="#E64626",
         dark=True,
-        className="mb-5",
+        className="mb-1",
     )
