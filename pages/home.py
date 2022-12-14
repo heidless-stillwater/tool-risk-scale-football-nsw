@@ -121,9 +121,15 @@ def body(data):
                     className="my-2",
                     id="id-accordion-risk-current",
                 ),
-                html.H2("Risk value trend in the next 20 hours"),
+                html.H2("Forecasted risk value"),
                 html.Div(id="fig-hss-trend"),
                 legend_risk(),
+                html.P(
+                    "Each dot in the chart above represents the forecasted conditions"
+                    " in the next X hours. Where X is the number displayed over"
+                    " the dot",
+                    className="my-2",
+                ),
             ]
     except:
         return [
@@ -208,7 +214,7 @@ def update_location_and_forecast(data_sport):
     State("session-storage-weather", "data"),
     State("local-storage-settings", "data"),
 )
-def update_fig_hss_trend(ts, data, data_sport):
+def update_fig_hss_forecast(ts, data, data_sport):
     try:
         df = pd.read_json(data, orient="table")
         return dcc.Graph(

@@ -1,7 +1,7 @@
 import plotly.express as px
 import numpy as np
 import pandas as pd
-from utils import calculate_comfort_indices, hss_palette
+from utils import calculate_comfort_indices, hss_palette, get_yr_weather
 import plotly.graph_objects as go
 
 
@@ -156,7 +156,7 @@ def risk_map(df_for, sport_class):
     df = calculate_comfort_indices(data_for=df, sport_class=sport_class)
     df["top"] = 100
 
-    df_for = df_for.head(10)
+    df_for = df_for.iloc[1:].head(10)
 
     fig = go.Figure()
     fig.add_trace(
@@ -184,7 +184,10 @@ def risk_map(df_for, sport_class):
             y=df_for["rh"],
             mode="lines+markers+text",
             line_color="black",
-            text=df_for.index.hour,
+            text=np.round(
+                (df_for.index - pd.Timestamp.now(tz="Australia/Sydney")).seconds / 3600,
+                0,
+            ),
             textposition="top center",
             line={"shape": "spline", "smoothing": 1.3},
         )
@@ -196,3 +199,10 @@ def risk_map(df_for, sport_class):
         yaxis=dict(title_text="Relative Humidity [%]", range=[5, 95]),
     )
     return fig
+
+
+if __name__ == "__main__":
+    df_for = get_yr_weather(lat=-17.91, lon=122.25)
+    df_for = calculate_comfort_indices(df_for, 3)
+    f = risk_map(df_for, 3)
+    f.show()

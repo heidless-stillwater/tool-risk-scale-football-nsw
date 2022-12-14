@@ -223,7 +223,11 @@ def legend_risk():
             ),
         )
 
-    return dbc.Row(legend_items, justify="around")
+    return dbc.Row(
+        legend_items,
+        justify="around",
+        className="my-2",
+    )
 
 
 if __name__ == "__main__":
