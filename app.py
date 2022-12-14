@@ -77,33 +77,6 @@ app.layout = html.Div(
 )
 
 
-@app.callback(
-    Output("session-storage-weather", "data"),
-    Input("url", "pathname"),
-    Input("local-storage-location-gps", "modified_timestamp"),
-    Input("local-storage-location-selected", "modified_timestamp"),
-    State("local-storage-location-gps", "data"),
-    State("local-storage-location-selected", "data"),
-    State("local-storage-settings", "data"),
-)
-def calculated_comfort_indexes(
-    url, ts_gps, ts_selected, loc_gps, loc_selected, data_sport
-):
-
-    if url != "/":
-        raise PreventUpdate
-    try:
-        print("Querying weather data")
-        if loc_selected and ctx.triggered_id != "local-storage-location-gps":
-            loc_gps = loc_selected
-        df = get_yr_weather(lat=round(loc_gps["lat"], 3), lon=round(loc_gps["lon"], 3))
-        df = calculate_comfort_indices(df, sports_category[data_sport["id-class"]])
-
-        return df.to_json(date_format="iso", orient="table")
-    except:
-        raise PreventUpdate
-
-
 app.clientside_callback(
     """
     function(pathname, data){

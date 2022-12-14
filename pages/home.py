@@ -7,8 +7,13 @@ from dash.exceptions import PreventUpdate
 from my_app.charts import hss_palette, risk_map, indicator_chart
 import dash
 import pandas as pd
-from utils import sma_risk_messages, sports_category, legend_risk
-
+from utils import (
+    sma_risk_messages,
+    sports_category,
+    legend_risk,
+    get_yr_weather,
+    calculate_comfort_indices,
+)
 
 dash.register_page(
     __name__,
@@ -60,31 +65,36 @@ def body(data):
                     ),
                     justify="center",
                 ),
-                dbc.Row(
-                    dbc.Col(
-                        [
-                            html.H3(
-                                "The current Heat Stress Risk:",
-                            ),
-                            dcc.Loading(
-                                html.H1(
-                                    className="alert-heading",
-                                    id="value-hss-current",
-                                ),
-                            ),
-                        ],
-                        style={"text-align": "center"},
-                    ),
-                ),
-                html.Div(id="fig-indicator"),
-                legend_risk(),
                 dbc.Alert(
                     [
-                        # html.Hr(),
+                        html.H3(
+                            "The current Heat Stress Risk:",
+                        ),
+                        dcc.Loading(
+                            html.H1(
+                                className="alert-heading",
+                                id="value-hss-current",
+                            ),
+                        ),
+                    ],
+                    style={"text-align": "center"},
+                    id="id-alert-risk-current-value",
+                ),
+                html.H3(
+                    "Heat Stress Scale:",
+                ),
+                html.Div(id="fig-indicator"),
+                dbc.Alert(
+                    [
+                        html.H3(
+                            "Key recommendations:",
+                        ),
+                        html.Hr(),
                         html.Div(id="div-icons-suggestions"),
                     ],
                     className="mt-1",
-                    id="id-alert-risk-current",
+                    color="secondary",
+                    id="id-alert-risk-current-recommendations",
                 ),
                 dbc.Accordion(
                     dbc.AccordionItem(
@@ -124,7 +134,7 @@ def body(data):
                         "Go to the Settings Page", color="primary", href="/settings"
                     ),
                 ],
-                className="d-grid gap-2 col-4 mx-auto",
+                className="d-grid gap-2 col-12 col-md-4 mx-auto",
             ),
         ]
 
@@ -158,8 +168,8 @@ def update_location_and_forecast(location, data):
     data = data or {"lat": -33.888, "lon": 151.185}
 
     if location:
-        data["lat"] = location[0]
-        data["lon"] = location[1]
+        data["lat"] = round(location[0], 3)
+        data["lon"] = round(location[1], 3)
 
     return data
 
@@ -220,7 +230,7 @@ def update_fig_hss_trend(ts, data, data_sport):
 
 @callback(
     Output("value-hss-current", "children"),
-    Output("id-alert-risk-current", "color"),
+    Output("id-alert-risk-current-value", "color"),
     Output("value-risk-description", "children"),
     Output("value-risk-suggestions", "children"),
     Output("div-icons-suggestions", "children"),
@@ -261,13 +271,18 @@ def update_alert_hss_current(ts, data):
 
 
 @callback(
-    Output("map-component", "children"),
-    Input("local-storage-location-gps", "modified_timestamp"),
-    Input("local-storage-location-selected", "modified_timestamp"),
-    State("local-storage-location-gps", "data"),
-    State("local-storage-location-selected", "data"),
+    [Output("session-storage-weather", "data"), Output("map-component", "children")],
+    [
+        Input("url", "pathname"),
+        Input("local-storage-location-gps", "data"),
+        Input("local-storage-location-selected", "data"),
+    ],
+    [State("local-storage-settings", "data")],
 )
-def on_location_change(ts_gps, ts_selected, loc_gps, loc_selected):
+def on_location_change(url, loc_gps, loc_selected, data_sport):
+
+    if url != "/":
+        raise PreventUpdate
 
     start_location_control = True
     if loc_gps or loc_selected:
@@ -275,28 +290,36 @@ def on_location_change(ts_gps, ts_selected, loc_gps, loc_selected):
 
     loc_gps = loc_gps or {"lat": -0, "lon": 0}
 
-    if ctx.triggered_id != "local-storage-location-gps" and loc_selected:
+    if loc_selected and ctx.triggered_id != "local-storage-location-gps":
         loc_gps = loc_selected
 
-    return dl.Map(
-        [
-            dl.TileLayer(maxZoom=13, minZoom=9),
-            dl.LocateControl(
-                startDirectly=start_location_control,
-                options={"locateOptions": {"enableHighAccuracy": True}},
-            ),
-            dl.Marker(position=[loc_gps["lat"], loc_gps["lon"]]),
-            dl.GestureHandling(),
-        ],
-        id="map",
-        style={
-            "width": "100%",
-            "height": "25vh",
-            "margin": "auto",
-            "display": "block",
-            # "-webkit-filter": "grayscale(100%)",
-            # "filter": "grayscale(100%)",
-        },
-        center=(loc_gps["lat"], loc_gps["lon"]),
-        zoom=13,
-    )
+    try:
+        if loc_selected and ctx.triggered_id != "local-storage-location-gps":
+            loc_gps = loc_selected
+        df = get_yr_weather(lat=loc_gps["lat"], lon=loc_gps["lon"])
+        df = calculate_comfort_indices(df, sports_category[data_sport["id-class"]])
+
+        return df.to_json(date_format="iso", orient="table"), dl.Map(
+            [
+                dl.TileLayer(maxZoom=13, minZoom=9),
+                dl.LocateControl(
+                    startDirectly=start_location_control,
+                    options={"locateOptions": {"enableHighAccuracy": True}},
+                ),
+                dl.Marker(position=[loc_gps["lat"], loc_gps["lon"]]),
+                dl.GestureHandling(),
+            ],
+            id="map",
+            style={
+                "width": "100%",
+                "height": "25vh",
+                "margin": "auto",
+                "display": "block",
+                # "-webkit-filter": "grayscale(100%)",
+                # "filter": "grayscale(100%)",
+            },
+            center=(loc_gps["lat"], loc_gps["lon"]),
+            zoom=11,
+        )
+    except:
+        raise PreventUpdate

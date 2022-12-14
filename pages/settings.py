@@ -62,7 +62,7 @@ def layout():
                 [
                     dbc.Button("Calculate Heat Stress Risk", color="primary", href="/"),
                 ],
-                className="d-grid gap-2 col-4 mx-auto my-2",
+                className="d-grid gap-2 col-12 col-md-4 mx-auto my-2",
             ),
         ],
         className="p-2",

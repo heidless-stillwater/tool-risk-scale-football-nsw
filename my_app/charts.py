@@ -113,16 +113,21 @@ def indicator_chart(df_for, sport_class):
     df = calculate_comfort_indices(data_for=df_for, sport_class=sport_class)
     data = df.iloc[0]
     steps = [
-        {"range": [0, data["moderate"]], "color": hss_palette[0]},
-        {"range": [data["moderate"], data["high"]], "color": hss_palette[1]},
-        {"range": [data["high"], data["extreme"]], "color": hss_palette[2]},
-        {"range": [data["extreme"], 100], "color": hss_palette[3]},
+        {"range": [0, 25], "color": hss_palette[0]},
+        {"range": [25, 50], "color": hss_palette[1]},
+        {"range": [50, 75], "color": hss_palette[2]},
+        {"range": [75, 100], "color": hss_palette[3]},
     ]
+
+    x = [0, data["moderate"], data["high"], data["extreme"], 100]
+    y = np.arange(0, 125, 25)
+
+    current_risk = np.around(np.interp(data["rh"], x, y), 1)
 
     fig = go.Figure(
         go.Indicator(
             mode="gauge",
-            value=data["rh"],
+            value=current_risk,
             domain={"x": [0, 1], "y": [0, 1]},
             gauge={
                 "shape": "bullet",
@@ -133,7 +138,7 @@ def indicator_chart(df_for, sport_class):
         )
     )
     fig.add_annotation(
-        x=data["rh"] / 100, y=1, text="Now", showarrow=False, font=dict(color="#000")
+        x=current_risk / 100, y=1, text="Now", showarrow=False, font=dict(color="#000")
     )
     fig = standard_layout(fig)
     fig.update_layout(height=60)
