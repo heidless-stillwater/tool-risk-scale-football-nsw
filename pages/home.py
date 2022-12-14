@@ -67,8 +67,13 @@ def body(data):
                 ),
                 dbc.Alert(
                     [
-                        html.H3(
-                            "The current Heat Stress Risk:",
+                        html.Div(
+                            id="id-icon-sport",
+                            className="p-2",
+                        ),
+                        html.Hr(),
+                        html.H2(
+                            "The current Heat Stress Risk is:",
                         ),
                         dcc.Loading(
                             html.H1(
@@ -143,12 +148,16 @@ def icon_component(src, message, size="50px"):
     return dbc.Row(
         [
             dbc.Col(
-                html.Img(src=src, width=size),
+                html.Img(
+                    src=src,
+                    width=size,
+                    style={"filter": "drop-shadow(2px 5px 2px rgb(0 0 0 / 0.4))"},
+                ),
                 style={"text-align": "right"},
                 width="auto",
             ),
             dbc.Col(
-                message,
+                html.H3(message),
                 width="auto",
                 style={"text-align": "left"},
             ),
@@ -185,13 +194,12 @@ def update_location_and_forecast(data_sport):
     except KeyError:
         raise PreventUpdate
     path = os.path.join(os.getcwd(), "assets", "icons", file_name)
+    message = f"Activity: {data_sport['id-class']}"
     # source https://www.theolympicdesign.com/olympic-design/pictograms/tokyo-2020/
     if os.path.isfile(path):
-        return icon_component(
-            f"../assets/icons/{data_sport['id-class']}.png", data_sport["id-class"]
-        )
+        return icon_component(f"../assets/icons/{data_sport['id-class']}.png", message)
     else:
-        return icon_component("../assets/icons/sports.png", data_sport["id-class"])
+        return icon_component("../assets/icons/sports.png", message)
 
 
 @callback(
