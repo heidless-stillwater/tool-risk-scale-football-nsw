@@ -79,14 +79,19 @@ app.layout = html.Div(
 
 @app.callback(
     Output("session-storage-weather", "data"),
+    Input("url", "pathname"),
     Input("local-storage-location-gps", "modified_timestamp"),
     Input("local-storage-location-selected", "modified_timestamp"),
     State("local-storage-location-gps", "data"),
     State("local-storage-location-selected", "data"),
     State("local-storage-settings", "data"),
 )
-def calculated_comfort_indexes(ts_gps, ts_selected, loc_gps, loc_selected, data_sport):
+def calculated_comfort_indexes(
+    url, ts_gps, ts_selected, loc_gps, loc_selected, data_sport
+):
 
+    if url != "/":
+        raise PreventUpdate
     try:
         print("Querying weather data")
         if loc_selected and ctx.triggered_id != "local-storage-location-gps":
