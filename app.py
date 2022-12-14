@@ -1,4 +1,4 @@
-from dash import Dash, Input, Output, State
+from dash import Dash, Input, Output, State, ctx
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 from dash import html, dcc
@@ -59,7 +59,8 @@ app.index_string = """<!DOCTYPE html>
 app.layout = html.Div(
     children=[
         dcc.Location(id="url"),
-        dcc.Store(id="local-storage-location", storage_type="local"),
+        dcc.Store(id="local-storage-location-gps", storage_type="local"),
+        dcc.Store(id="local-storage-location-selected", storage_type="local"),
         dcc.Store(id="local-storage-settings", storage_type="local"),
         dcc.Store(id="session-storage-weather", storage_type="session"),
         html.Div(id="id-google-analytics-event"),
@@ -78,19 +79,19 @@ app.layout = html.Div(
 
 @app.callback(
     Output("session-storage-weather", "data"),
-    Input("url", "pathname"),
-    State("local-storage-location", "data"),
+    Input("local-storage-location-gps", "modified_timestamp"),
+    Input("local-storage-location-selected", "modified_timestamp"),
+    State("local-storage-location-gps", "data"),
+    State("local-storage-location-selected", "data"),
     State("local-storage-settings", "data"),
 )
-def calculated_comfort_indexes(url, data_location, data_sport):
+def calculated_comfort_indexes(ts_gps, ts_selected, loc_gps, loc_selected, data_sport):
 
-    if url != "/":
-        raise PreventUpdate
     try:
         print("Querying weather data")
-        df = get_yr_weather(
-            lat=round(data_location["lat"], 3), lon=round(data_location["lon"], 3)
-        )
+        if loc_selected and ctx.triggered_id != "local-storage-location-gps":
+            loc_gps = loc_selected
+        df = get_yr_weather(lat=round(loc_gps["lat"], 3), lon=round(loc_gps["lon"], 3))
         df = calculate_comfort_indices(df, sports_category[data_sport["id-class"]])
 
         return df.to_json(date_format="iso", orient="table")

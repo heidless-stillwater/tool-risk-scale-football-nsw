@@ -1,6 +1,6 @@
 import os
 
-from dash import html, dcc, Output, Input, State, callback
+from dash import html, dcc, Output, Input, State, callback, ctx
 import dash_bootstrap_components as dbc
 import dash_leaflet as dl
 from dash.exceptions import PreventUpdate
@@ -150,9 +150,9 @@ def icon_component(src, message, size="50px"):
 
 
 @callback(
-    Output("local-storage-location", "data"),
+    Output("local-storage-location-gps", "data"),
     Input("map", "location_lat_lon_acc"),
-    State("local-storage-location", "data"),
+    State("local-storage-location-gps", "data"),
 )
 def update_location_and_forecast(location, data):
     data = data or {"lat": -33.888, "lon": 151.185}
@@ -262,16 +262,22 @@ def update_alert_hss_current(ts, data):
 
 @callback(
     Output("map-component", "children"),
-    Input("local-storage-location", "modified_timestamp"),
-    State("local-storage-location", "data"),
+    Input("local-storage-location-gps", "modified_timestamp"),
+    Input("local-storage-location-selected", "modified_timestamp"),
+    State("local-storage-location-gps", "data"),
+    State("local-storage-location-selected", "data"),
 )
-def on_location_change(ts, data):
+def on_location_change(ts_gps, ts_selected, loc_gps, loc_selected):
 
     start_location_control = True
-    if data:
+    if loc_gps or loc_selected:
         start_location_control = False
 
-    data = data or {"lat": -33.888, "lon": 151.185}
+    loc_gps = loc_gps or {"lat": -0, "lon": 0}
+
+    if ctx.triggered_id != "local-storage-location-gps" and loc_selected:
+        loc_gps = loc_selected
+
     return dl.Map(
         [
             dl.TileLayer(maxZoom=13, minZoom=9),
@@ -279,7 +285,7 @@ def on_location_change(ts, data):
                 startDirectly=start_location_control,
                 options={"locateOptions": {"enableHighAccuracy": True}},
             ),
-            dl.Marker(position=[data["lat"], data["lon"]]),
+            dl.Marker(position=[loc_gps["lat"], loc_gps["lon"]]),
             dl.GestureHandling(),
         ],
         id="map",
@@ -291,6 +297,6 @@ def on_location_change(ts, data):
             # "-webkit-filter": "grayscale(100%)",
             # "filter": "grayscale(100%)",
         },
-        center=(data["lat"], data["lon"]),
+        center=(loc_gps["lat"], loc_gps["lon"]),
         zoom=13,
     )

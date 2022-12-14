@@ -10,6 +10,7 @@ dash-bootstrap-components = "*"
 requests = "*"
 dash-leaflet = "*"
 pytz = "*"
+dash-extensions = "*"
 
 [dev-packages]
 seaborn = "*"

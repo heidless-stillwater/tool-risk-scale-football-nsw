@@ -1,3 +1,4 @@
+import pandas as pd
 from dash import html, dcc, Input, Output, callback, State, ctx
 import dash
 import dash_bootstrap_components as dbc
@@ -12,6 +13,8 @@ dash.register_page(
     description="This is the settings page of the SMA Extreme Policy Tool",
 )
 
+df_postcodes = pd.read_csv("./assets/postcodes.csv")
+
 
 # from https://www.health.vic.gov.au/environmental-health/extreme-heat-information-for-clinicians
 questions = [
@@ -19,6 +22,13 @@ questions = [
         "id": "id-class",
         "question": "Please select a sport:",
         "options": list(sports_category.keys()),
+        "multi": False,
+        "default": [],
+    },
+    {
+        "id": "id-postcode",
+        "question": "Select current suburb (optional):",
+        "options": list(df_postcodes["suburb"].unique()),
         "multi": False,
         "default": [],
     },
@@ -47,11 +57,12 @@ def layout():
     return dbc.Container(
         [
             html.Div(id="settings-dropdowns"),
+            html.Div(id="postcode-info"),
             html.Div(
                 [
-                    dbc.Button("Home Page", color="primary", href="/"),
+                    dbc.Button("Calculate Heat Stress Risk", color="primary", href="/"),
                 ],
-                className="d-grid gap-2 col-4 mx-auto",
+                className="d-grid gap-2 col-4 mx-auto my-2",
             ),
         ],
         className="p-2",
@@ -86,5 +97,25 @@ def display_page(pathname, data):
         return generate_dropdown(__questions)
     elif data is None:
         return generate_dropdown(questions)
+    else:
+        raise PreventUpdate
+
+
+@callback(
+    Output("postcode-info", "children"),
+    Output("local-storage-location-selected", "data"),
+    Input("id-postcode", "value"),
+)
+def display_page(value):
+    if value:
+        information = df_postcodes[df_postcodes["suburb"] == value].to_dict(
+            orient="list"
+        )
+        print(information)
+        return html.Div(
+            f"Postcode: {information['postcode'][0]}; Suburb:"
+            f" {information['suburb'][0]}; State:"
+            f" {information['state'][0]}"
+        ), {"lat": information["latitude"][0], "lon": information["longitude"][0]}
     else:
         raise PreventUpdate
