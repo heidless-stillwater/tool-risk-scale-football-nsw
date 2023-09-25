@@ -2,6 +2,41 @@
 https://github.com/FedericoTartarini/tool-risk-scale-football-nsw
 
 
+## install
+```
+sudo apt install libcurl4-openssl-dev libssl-dev
+pip install -r requirements.txt
+```
+
+# run
+# local
+gunicorn main:app --reload
+
+# docker
+docker build . -t tool-risk-scale
+
+docker run --rm --name tool-risk-scale -e PORT=8080 -p 8080:8080 tool-risk-scale
+
+# access docker shell
+docker exec -it tool-risk-scale bash
+
+# check exists
+docker image ls
+
+# gcloud
+
+gcloud builds submit --tag gcr.io/pfolio-deploy-1/tool-risk-scale
+
+gcloud run deploy --image gcr.io/pfolio-deploy-1/tool-risk-scale --platform managed --port=8080
+
+```
+
+
+
+
+
+
+
 ### Create dependencies
 ```
 pipenv run pip3 freeze > requirements.txt
